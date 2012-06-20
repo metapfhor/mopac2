@@ -1,0 +1,335 @@
+      PROGRAM BOXING
+          IMPLICIT NONE
+!          INTEGER X(*),Y(*)
+          INTEGER Nsize
+          INTEGER :: NEWARR
+!          POINTER (P, X),(Q,Y)
+          INTEGER P,Q
+          PRINT *, STORAGE_SIZE(Nsize)
+           READ (*,*) Nsize     ! Get the size.
+!          Nsize=7
+          P = NEWARR(Nsize)
+          Q = NEWARR(5)
+          CALL PRINT(Q)
+          CALL RESIZE(P,NSIZE)
+          CALL SETLENGTH(P,NSIZE)
+
+          CALL PRINT(P)
+          CALL INIT(P)
+          CALL PRINT(P)
+          CALL DBLSIZE(P)
+          CALL SETLENGTH(P,3*Nsize/2)
+          CALL PRINT(P)
+          CALL PRINT(Q)
+          CALL GETVALS(P,3,6,Q)
+
+
+          CALL PRINT(Q)
+
+          CALL PRINT(P)
+!          CALL INIT(P)
+
+          CALL PRINT(P)
+          CALL PRINT(Q)
+          CALL SETVALS(P,1,5,Q)
+          CALL PRINT(P)
+      END PROGRAM
+
+      INTEGER FUNCTION NEWARR(L)
+      INTEGER L
+      INTEGER X(*)
+      POINTER(P,X)
+
+      CALL RESIZEL(NEWARR,L,0)
+      CALL SETLENGTH(NEWARR,0)
+      END
+
+
+      SUBROUTINE PRINT(A)
+       INTEGER A
+       INTEGER N
+       INTEGER :: GETLENGTH
+       CALL PRINTL(A,GETLENGTH(A))
+
+      END
+
+      SUBROUTINE PRINTL(A,L)
+          INTEGER A,L
+          INTEGER X(*)
+          POINTER(P,X)
+          P=A
+          PRINT *,A
+          DO I=1,L
+          PRINT *,I,': ', X(I+2)
+          END DO
+          RETURN
+      END
+
+      SUBROUTINE SETLENGTH(A, L)
+        INTEGER L,A
+        INTEGER X(2)
+        POINTER (P,X)
+        P=A
+        X(2)=MIN(X(1),L)
+      END
+
+
+      INTEGER FUNCTION GETLENGTH(A)
+          INTEGER A
+          INTEGER X(2)
+          POINTER (P,X)
+          P=A
+          GETLENGTH = X(2)
+          RETURN
+      END FUNCTION
+
+      INTEGER FUNCTION GETSIZE(A)
+          INTEGER A
+          INTEGER X(2)
+          POINTER (P,X)
+          P=A
+          GETSIZE = X(1)
+          RETURN
+      END FUNCTION
+
+      SUBROUTINE INIT(A)
+      INTEGER A
+      INTEGER :: GETLENGTH
+
+      CALL INITL(A,GETLENGTH(A))
+      END
+
+      SUBROUTINE INITL(A,L)
+      INTEGER A,L
+      INTEGER :: GETSIZE
+      INTEGER X(*)
+      POINTER(P,X)
+      P=A
+      DO I=1,L
+        X(I+2)=I
+      END DO
+      END
+
+
+      SUBROUTINE DBLSIZE(A)
+      INTEGER A
+      INTEGER :: GETSIZE
+      CALL RESIZE(A,GETSIZE(A)*2)
+
+      END
+
+      SUBROUTINE RESIZE(A,S)
+      INTEGER A,S
+      INTEGER :: GETLENGTH
+
+      CALL RESIZEL(A,S,GETLENGTH(A))
+
+      END
+
+      SUBROUTINE RESIZEL(A,S,L)
+      INTEGER A,S
+      INTEGER X(*),Y(*)
+      POINTER(P,X),(Q,Y)
+      IF(L.NE.0)THEN
+          IF(L.NE.S)THEN
+              P=A
+              A=MALLOC((S+2)*STORAGE_SIZE(X(3)))
+              Q=A
+
+              Y(1)=S
+              Y(2)=S
+
+              CALL POINTERCOPY(P,2,MIN(S+2,L+2),Q,2,MIN(S+2,L+2))
+              CALL DELETE(P)
+          ENDIF
+      ELSE
+      A=MALLOC((S+2)*STORAGE_SIZE(S))
+      P=A
+      X(1)=S
+      X(2)=S
+      ENDIF
+C      A(1:L+2)=Q(1:L+2)
+      END
+
+      SUBROUTINE DELETE(A)
+      INTEGER  A
+      CALL FREE(A)
+      END
+
+      SUBROUTINE DELETEL(A)
+
+      END
+
+      SUBROUTINE POINTERCOPY(A,I,J,B,K,L)
+      INTEGER A,B
+      INTEGER I,J,K,L
+      INTEGER :: GETLENGTH
+
+      CALL POINTERCOPYL(A,I,J,ABS(J-I),B,K,L,ABS(L-K))
+
+      END
+
+      SUBROUTINE POINTERCOPYL(A,I,J,SA,B,K,L,SB)
+      INTEGER A,B,SA,SB
+      INTEGER I,J,K,L
+      INTEGER X(SA),Y(SB)
+      POINTER(P,X),(Q,Y)
+      P=A
+      Q=B
+!      CALL PRINT(A)
+
+      CALL ARRAYCOPYL(X,I,J,SA,Y,K,L,SB)
+!      CALL PRINT(B)
+      END
+
+      SUBROUTINE ARRAYCOPYL(A,I,J,SA,B,K,L,SB)
+      INTEGER SA,SB
+      INTEGER I,J,K,L
+      INTEGER A(SA),B(SB)
+      B(K:L)=A(I:J)
+      END
+
+      SUBROUTINE ADDVAL(A,V)
+      INTEGER :: GETLENGTH
+      INTEGER A,V
+        CALL SETVAL(A,I,GETLENGTH(A)+1)
+      END
+
+      SUBROUTINE ADDVALS(A,V)
+      INTEGER :: GETLENGTH
+      INTEGER A,V
+        CALL SETVALS(A,I,GETLENGTH(A)+1)
+      END
+
+      SUBROUTINE SETVAL(A,I,V)
+      INTEGER J,A,I,V
+      INTEGER :: GETSIZE
+      IF(GETSIZE(A).LT.I)THEN
+      J=0
+   10   IF(I.LE.2**J)THEN
+          J=J+1
+          GOTO 10
+      ENDIF
+      CALL RESIZE(A,2**J)
+      ENDIF
+      CALL SETVALCHKD(A,I,V)
+      END
+
+      SUBROUTINE SETVALCHKD(A,I,V)
+          INTEGER A,I,V
+          INTEGER X(*)
+          POINTER(P,X)
+          INTEGER :: GETLENGTH
+          P=A
+          IF(X(2).LT.I)X(2)=I
+          X(I)=V
+      END
+
+      INTEGER FUNCTION GETVAL(A,I)
+          INTEGER :: GETLENGTH
+          INTEGER :: GETVALCHKD
+          INTEGER A,I
+          IF(GETLENGTH(A).GE.I)THEN
+            GETVAL=GETVALCHKD(A,I)
+          ELSE
+            GETVAL=0
+          ENDIF
+      END
+
+      INTEGER FUNCTION GETVALCHKD(A,I)
+          INTEGER A,I
+          INTEGER X(*)
+          POINTER(P,X)
+          P=A
+          GETVALCHKD=X(I)
+      END
+
+
+      SUBROUTINE GETVALS(A,I,J,RES)
+      INTEGER A,I,J,RES
+      INTEGER :: GETLENGTH
+      INTEGER :: GETSIZE
+
+      IF(GETLENGTH(A).GE.I.AND.GETLENGTH(A).GE.J.AND.I.LE.J)THEN
+            CALL ENSURESIZE(RES,(J-I+1))
+!            CALL PRINT(RES)
+            CALL GETVALSCHCKD(A,I,J,RES)
+!            CALL PRINT(RES)
+          ELSE
+             CALL ENSURESIZE(RES,ABS(J-I)+1)
+             CALL ZEROL(RES,ABS(J-I)+1)
+            GETVAL=0
+          ENDIF
+      END
+
+      SUBROUTINE GETVALSCHCKD(A,I,J,RES)
+      INTEGER A,I,J,RES,L
+      INTEGER :: GETLENGTH
+!      CALL PRINT(RES)
+      L=GETLENGTH(RES)
+      CALL POINTERCOPYL(A,I+2,J+2,GETLENGTH(A)+2,RES,1+2,J-I+3,L+2)
+
+      END
+
+      RECURSIVE SUBROUTINE SETVALS(A,I,J,RES)
+      INTEGER A,I,J,K,RES
+      INTEGER :: GETLENGTH
+      INTEGER :: GETSIZE
+
+      IF(GETSIZE(A).GE.I.AND.GETSIZE(A).GE.J.AND.I.LE.J)THEN
+            CALL ENSURESIZE(RES,J-I+1)
+
+            CALL SETVALSCHCKD(A,I,J,RES)
+      ELSE
+            K=0
+   10   IF(I.LE.2**J)THEN
+          K=K+1
+          GOTO 10
+      ENDIF
+      CALL RESIZE(A,2**K)
+      CALL SETVALS(A,1,J,K)
+      ENDIF
+      END
+
+      SUBROUTINE SETVALSCHCKD(A,I,J,RES)
+      INTEGER A,I,J,RES,L,M
+      INTEGER :: GETLENGTH
+      CALL PRINT(RES)
+      L=GETLENGTH(RES)
+      M=GETLENGTH(A)
+      CALL POINTERCOPYL(RES,3,J+2,L+2,A,I+2,J+2,M+2)
+      CALL SETLENGTH(A,MAX(M,J))
+      END
+
+      SUBROUTINE GETVALSCHCKDL(A,I,J,RES)
+
+      END
+
+
+
+
+
+      SUBROUTINE ZERO(A)
+      INTEGER A
+      INTEGER :: GETSIZE
+      CALL ZEROL(A,GETSIZE(A))
+
+      END
+
+      SUBROUTINE ZEROL(A,L)
+      INTEGER A, X(L)
+      INTEGER, INTENT(IN) :: L
+      POINTER(P,X)
+      P=A
+      DO I=1,L
+        X(I)=0
+      END DO
+
+      END
+
+
+      SUBROUTINE ENSURESIZE(A,L)
+      INTEGER A
+      INTEGER :: GETSIZE
+      IF(GETSIZE(A).LT.L)CALL RESIZE(A,L)
+      END

@@ -49,11 +49,17 @@ C       Laurent Modification: Recenter on the first atom
       OFF(2)=OFF(2)+ATOT(2,1)*DX+ATOT(2,2)*DY+ATOT(2,3)*DZ
       OFF(3)=OFF(3)+ATOT(3,1)*DX+ATOT(3,2)*DY+ATOT(3,3)*DZ
 
+
       DO 40 I=1,NUMAT
         XYZ(1,I)=XYZ(1,I)-DX
         XYZ(2,I)=XYZ(2,I)-DY
         XYZ(3,I)=XYZ(3,I)-DZ
    40 CONTINUE
+
+      IF(INDEX(KEYWRD,'ALTCON').NE.0.AND..NOT.APPLIED)THEN
+        CALL AALTCON(XYZ)
+        APPLIED=.TRUE.
+      ENDIF
 C       Laurent End
       IF(.NOT.(ICALCN.NE.NUMCAL).AND.NA(2).EQ.-1 .OR. NA(2).EQ.-2)THEN
          NA(2)=1
@@ -88,6 +94,7 @@ C       Laurent End
 C
 C   ATOM I IS NEAREST TO ATOM K
 C
+
         ELSE
         K=ICONXN(1,I)
         ENDIF
@@ -145,28 +152,7 @@ C
       NB(2)=0
       NC(2)=0
       NC(3)=0
-      IF(INDEX(KEYWRD,'ALTCON').NE.0.AND..NOT.APPLIED)THEN
 
-       DO 50 I=1,NUMATM
-       XYZINIT(:,I)=XYZ(:,I)
-   50  CONTINUE
-
-        DO 60 I=1,NUMATM
-C            IF(IVAL(1,I).NE.INFINT)THEN
-C            CALL SETRADI(XYZ(:,I),XYZ(:,NA(I)),XYZINIT(:,NA(I)),
-C     1       IVAL(1,I))
-C            ENDIF
-C            IF(IVAL(2,I).NE.INFINT)THEN
-C            CALL SETBANG(XYZ(:,I),XYZ(:,NA(I)),XYZ(:,NB(I)),
-C     1       IVAL(2,I)/DEGREE)
-C            ENDIF
-C            IF(IVAL(3,I).NE.INFINT)THEN
-C            CALL SETDIHD(XYZ(:,I),XYZ(:,NA(I)),XYZ(:,NB(I)),
-C     1       XYZ(:,NC(I)),IVAL(3,I)/DEGREE)
-C            ENDIF
-   60   CONTINUE
-        APPLIED=.TRUE.
-      ENDIF
       CALL XYZGEO(XYZ,NUMAT,NA,NB,NC,DEGREE,GEO)
       RETURN
       END
@@ -414,143 +400,5 @@ C      ROTATE KJ AROUND THE X AXIS SO KJ LIES ALONG THE Z AXIS
       RCOS=-RCOS
       RETURN
    10 RCOS=0.0D0
-      RETURN
-      END
-      SUBROUTINE SETRADI(XYZ,I,J,R,ATMS)
-      IMPLICIT DOUBLE PRECISION (A-Z)
-      DOUBLE PRECISION DEL(3),SC
-      INTEGER ATMS(1,*)
-      DIMENSION XYZ(3,*)
-**********************************************
-*       SETS THE DISTANCE BETWEEN TWO ATOMS TO THE SPECIFIED LENGTH
-*       THE SECOND ATOM WILL MOVE ALONG THE SEPARATION VECTOR
-**********************************************
-      SC=SQRT((XYZ(1,I)-XYZ(1,J))**2+(XYZ(2,I)-XYZ(2,J))**2+
-     1 (XYZ(3,I)-XYZ(3,J))**2)
-      SC=(1-R/SC)*SC
-      DEL(1)=SC*(XYZ(1,I)-XYZ(1,J))
-      DEL(2)=SC*(XYZ(2,I)-XYZ(2,J))
-      DEL(3)=SC*(XYZ(3,I)-XYZ(3,J))
-      DO 10 II=1,SIZE(ATMS,1)
-        XYZ(1,ATMS(1,II))=XYZ(1,ATMS(1,II))+DEL(1)
-        XYZ(2,ATMS(1,II))=XYZ(2,ATMS(1,II))+DEL(2)
-        XYZ(3,ATMS(1,II))=XYZ(3,ATMS(1,II))+DEL(3)
-   10  CONTINUE
-      RETURN
-      END
-      SUBROUTINE SETBANG(XYZ,I,J,K,ANGL,ATMS)
-      IMPLICIT DOUBLE PRECISION (A-Z)
-      DOUBLE PRECISION XP(3),YP(3),ZP(3),OP(3),JII(3),R,LN,C,S,DEL
-      INTEGER ATMS(1,*)
-      DIMENSION XYZ(3,*)
-**********************************************
-*       SETS THE BOND ANGLE BETWEEN THREE ATOMS
-*       THIS WILL FAIL IF THE ATOMS ARE QUASI-COLINEAR
-**********************************************
-      YP(1)=XYZ(1,I)-XYZ(1,J)
-      YP(2)=XYZ(2,I)-XYZ(2,J)
-      YP(3)=XYZ(3,I)-XYZ(3,J)
-      LN=SQRT(YP(1)**2+YP(2)**2+YP(3)**2)
-      YP(1)=YP(1)/LN
-      YP(2)=YP(2)/LN
-      YP(3)=YP(3)/LN
-      XP(1)=XYZ(1,K)-XYZ(1,J)
-      XP(2)=XYZ(2,K)-XYZ(2,J)
-      XP(3)=XYZ(3,K)-XYZ(3,J)
-      LN=SQRT(XP(1)**2+XP(2)**2+XP(3)**2)
-      XP(1)=XP(1)/LN
-      XP(2)=XP(2)/LN
-      XP(3)=XP(3)/LN
-      LN=DOT_PRODUCT(XP,YP)
-      YP(1)=YP(1)-LN*XP(1)
-      YP(2)=YP(2)-LN*XP(2)
-      YP(3)=YP(3)-LN*XP(3)
-      LN=SQRT(YP(1)**2+YP(2)**2+YP(3)**2)
-      YP(1)=YP(1)/LN
-      YP(2)=YP(2)/LN
-      YP(3)=YP(3)/LN
-      CALL BANGLE(XYZ,I,J,K,DEL)
-      DEL=ANGL-DEL
-      ZP(1)=XP(2)*YP(3)-XP(3)*YP(2)
-      ZP(2)=XP(3)*YP(1)-XP(1)*YP(3)
-      ZP(3)=XP(1)*YP(2)-XP(2)*YP(1)
-      LN=SQRT(DOT_PRODUCT(ZP,ZP))
-      ZP(1)=ZP(1)/LN
-      ZP(2)=ZP(2)/LN
-      ZP(3)=ZP(3)/LN
-      DO 10 II=1,SIZE(ATMS,1)
-        IF(II.NE.J)THEN
-            CALL BANGLE(XYZ,I,J,ATMS(1,II),LN)
-            LN=LN+DEL
-            C=COS(LN)
-            S=SIN(LN)
-            R=SQRT((XYZ(1,ATMS(1,II))-XYZ(1,J))**2+
-     2   (XYZ(2,ATMS(1,II))-XYZ(2,J))**2+
-     3   (XYZ(3,ATMS(1,II))-XYZ(3,J))**2)
-            JII(1)=XYZ(1,ATMS(1,II))-XYZ(1,J)
-            JII(2)=XYZ(2,ATMS(1,II))-XYZ(2,J)
-            JII(3)=XYZ(3,ATMS(1,II))-XYZ(3,J)
-            LN=DOT_PRODUCT(JII,ZP)
-            OP(1)=XYZ(1,J)+ZP(1)*LN
-            OP(2)=XYZ(2,J)+ZP(2)*LN
-            OP(3)=XYZ(3,J)+ZP(3)*LN
-            XYZ(1,ATMS(1,II))=OP(1)+R*(C*XP(1)+S*YP(1))
-            XYZ(2,ATMS(1,II))=OP(2)+R*(C*XP(2)+S*YP(2))
-            XYZ(3,ATMS(1,II))=OP(3)+R*(C*XP(3)+S*YP(3))
-        ENDIF
-   10  CONTINUE
-      RETURN
-      END
-      SUBROUTINE SETDIHD(XYZ,I,J,K,L,ANGL,ATMS)
-      IMPLICIT DOUBLE PRECISION (A-Z)
-      DOUBLE PRECISION OP(3),XP(3),YP(3),ZP(3),JII(3),R,LN,C,S,DEL
-      INTEGER ATMS(1,*)
-      DIMENSION XYZ(3,*)
-**********************************************************************
-*       SETS THE DIHERDAL ANGLE OF THE IJK PLANE WRT JKL TO THAT SPECIFIED
-**********************************************************************
-      C=COS(ANGL)
-      S=SIN(ANGL)
-      ZP(1)=XYZ(1,J)-XYZ(1,K)
-      ZP(2)=XYZ(2,J)-XYZ(2,K)
-      ZP(3)=XYZ(3,J)-XYZ(3,K)
-      LN=SQRT(ZP(1)**2+ZP(2)**2+ZP(3)**2)
-      ZP(1)=ZP(1)/LN
-      ZP(2)=ZP(2)/LN
-      ZP(3)=ZP(3)/LN
-      XP(1)=XYZ(1,L)-XYZ(1,K)
-      XP(2)=XYZ(2,L)-XYZ(2,K)
-      XP(3)=XYZ(3,L)-XYZ(3,K)
-      LN=DOT_PRODUCT(XP,ZP)
-      XP(1)=XP(1)-LN*ZP(1)
-      XP(2)=XP(2)-LN*ZP(2)
-      XP(3)=XP(3)-LN*ZP(3)
-      LN=SQRT(XP(1)**2+XP(2)**2+XP(3)**2)
-      XP(1)=XP(1)/LN
-      XP(2)=XP(2)/LN
-      XP(3)=XP(3)/LN
-      YP(1)=ZP(2)*XP(3)-ZP(3)*XP(2)
-      YP(2)=ZP(3)*XP(1)-ZP(1)*XP(3)
-      YP(3)=ZP(1)*XP(2)-ZP(2)*XP(1)
-      CALL DIHED(XYZ,I,J,K,L,DEL)
-      DEL=ANGL-DEL
-      DO 10 II=1,SIZE(ATMS,1)
-        JII(1)=XYZ(1,ATMS(1,II))-XYZ(1,J)
-        JII(2)=XYZ(2,ATMS(1,II))-XYZ(2,J)
-        JII(3)=XYZ(3,ATMS(1,II))-XYZ(3,J)
-        LN=DOT_PRODUCT(JII,ZP)
-        OP(1)=XYZ(1,J)+ZP(1)*LN
-        OP(2)=XYZ(2,J)+ZP(2)*LN
-        OP(3)=XYZ(3,J)+ZP(3)*LN
-        R=SQRT((OP(1)-XYZ(1,ATMS(1,II)))**2+(OP(2)-XYZ(2,ATMS(1,II)))**2
-     1   +(OP(3)-XYZ(3,ATMS(1,II)))**2)
-        CALL DIHED(XYZ,I,J,K,ATMS(1,II),LN)
-        LN=LN+DEL
-        C=COS(LN)
-        S=SIN(LN)
-        XYZ(1,ATMS(1,II))=OP(1)+R*(C*XP(1)+S*YP(1))
-        XYZ(2,ATMS(1,II))=OP(2)+R*(C*XP(2)+S*YP(2))
-        XYZ(3,ATMS(1,II))=OP(3)+R*(C*XP(3)+S*YP(3))
-   10  CONTINUE
       RETURN
       END

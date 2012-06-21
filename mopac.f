@@ -50,6 +50,9 @@ C       Added: unit vectors to be transformed as the axes are rotated
 C       as well as a translation vector in order to return to the input coords
 
       COMMON /AXES / XHAT,YHAT,ZHAT,OFF,ATOT
+      COMMON /ARRS / DESC
+      INTEGER DESC
+      DATA DESC /2/
       DOUBLE PRECISION XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT(3,3)
 C       end of Laurent Modification
 
@@ -68,6 +71,8 @@ C     PATAS
 C     PATAS
 
 C       Laurent: Axis Initilization
+      CALL BOXING()
+
       XHAT(1)=1
       YHAT(1)=0
       ZHAT(1)=0

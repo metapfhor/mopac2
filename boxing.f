@@ -1,13 +1,13 @@
-      PROGRAM BOXING
+      SUBROUTINE BOXING
           IMPLICIT NONE
 !          INTEGER X(*),Y(*)
           INTEGER Nsize
           INTEGER :: NEWARR
 !          POINTER (P, X),(Q,Y)
           INTEGER P,Q
-          PRINT *, STORAGE_SIZE(Nsize)
-           READ (*,*) Nsize     ! Get the size.
-!          Nsize=7
+          PRINT *, SIZEOF(Nsize)
+!           READ (*,*) Nsize     ! Get the size.
+          Nsize=7
           P = NEWARR(Nsize)
           Q = NEWARR(5)
           CALL PRINT(Q)
@@ -27,21 +27,22 @@
           CALL PRINT(Q)
 
           CALL PRINT(P)
-!          CALL INIT(P)
+          CALL INIT(P)
 
           CALL PRINT(P)
           CALL PRINT(Q)
           CALL SETVALS(P,1,5,Q)
           CALL PRINT(P)
-      END PROGRAM
+      END
 
       INTEGER FUNCTION NEWARR(L)
+
       INTEGER L
       INTEGER X(*)
       POINTER(P,X)
+      DATA DESC /2/
 
       CALL RESIZEL(NEWARR,L,0)
-      CALL SETLENGTH(NEWARR,0)
       END
 
 
@@ -60,34 +61,40 @@
           P=A
           PRINT *,A
           DO I=1,L
-          PRINT *,I,': ', X(I+2)
+          PRINT *,I,': ', X(I)
           END DO
           RETURN
       END
 
       SUBROUTINE SETLENGTH(A, L)
-        INTEGER L,A
+        COMMON /ARRS / DESC
+        INTEGER DESC
+        INTEGER L,A,K
         INTEGER X(2)
         POINTER (P,X)
-        P=A
+        P=A-DESC*SIZEOF(A)
         X(2)=MIN(X(1),L)
       END
 
 
       INTEGER FUNCTION GETLENGTH(A)
-          INTEGER A
+          COMMON /ARRS / DESC
+          INTEGER DESC
+          INTEGER A,L
           INTEGER X(2)
           POINTER (P,X)
-          P=A
+          P=A-DESC*SIZEOF(A)
           GETLENGTH = X(2)
           RETURN
       END FUNCTION
 
       INTEGER FUNCTION GETSIZE(A)
+          COMMON /ARRS / DESC
+          INTEGER DESC
           INTEGER A
           INTEGER X(2)
           POINTER (P,X)
-          P=A
+          P=A-DESC*SIZEOF(A)
           GETSIZE = X(1)
           RETURN
       END FUNCTION
@@ -106,7 +113,7 @@
       POINTER(P,X)
       P=A
       DO I=1,L
-        X(I+2)=I
+        X(I)=I
       END DO
       END
 
@@ -127,26 +134,32 @@
       END
 
       SUBROUTINE RESIZEL(A,S,L)
+      COMMON /ARRS / DESC
+      INTEGER DESC
       INTEGER A,S
       INTEGER X(*),Y(*)
       POINTER(P,X),(Q,Y)
+
       IF(L.NE.0)THEN
           IF(L.NE.S)THEN
               P=A
-              A=MALLOC((S+2)*STORAGE_SIZE(X(3)))
+              A=MALLOC((S+DESC)*SIZEOF(A))
               Q=A
 
               Y(1)=S
               Y(2)=S
+              A=A+DESC*SIZEOF(A)
+              Q=A
 
-              CALL POINTERCOPY(P,2,MIN(S+2,L+2),Q,2,MIN(S+2,L+2))
-              CALL DELETE(P)
+              CALL POINTERCOPY(P,1,MIN(S,L),Q,1,MIN(S,L))
+              CALL DELETE(P-DESC*SIZEOF(A))
           ENDIF
       ELSE
-      A=MALLOC((S+2)*STORAGE_SIZE(S))
+      A=MALLOC((S+DESC)*SIZEOF(A))
       P=A
       X(1)=S
-      X(2)=S
+      X(2)=0
+      A=A+DESC*SIZEOF(A)
       ENDIF
 C      A(1:L+2)=Q(1:L+2)
       END
@@ -198,7 +211,7 @@ C      A(1:L+2)=Q(1:L+2)
       SUBROUTINE ADDVALS(A,V)
       INTEGER :: GETLENGTH
       INTEGER A,V
-        CALL SETVALS(A,I,GETLENGTH(A)+1)
+        CALL SETVALS(A,GETLENGTH(A)+1,GETLENGTH(A)+GETLENGTH(V)+1,V)
       END
 
       SUBROUTINE SETVAL(A,I,V)
@@ -267,7 +280,7 @@ C      A(1:L+2)=Q(1:L+2)
       INTEGER :: GETLENGTH
 !      CALL PRINT(RES)
       L=GETLENGTH(RES)
-      CALL POINTERCOPYL(A,I+2,J+2,GETLENGTH(A)+2,RES,1+2,J-I+3,L+2)
+      CALL POINTERCOPYL(A,I,J,GETLENGTH(A),RES,1,J-I+1,L)
 
       END
 
@@ -294,10 +307,9 @@ C      A(1:L+2)=Q(1:L+2)
       SUBROUTINE SETVALSCHCKD(A,I,J,RES)
       INTEGER A,I,J,RES,L,M
       INTEGER :: GETLENGTH
-      CALL PRINT(RES)
       L=GETLENGTH(RES)
       M=GETLENGTH(A)
-      CALL POINTERCOPYL(RES,3,J+2,L+2,A,I+2,J+2,M+2)
+      CALL POINTERCOPYL(RES,1,J,L,A,I,J,M)
       CALL SETLENGTH(A,MAX(M,J))
       END
 

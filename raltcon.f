@@ -20,8 +20,11 @@
       TRLB=NEWARR(5)
       ROTB=NEWARR(5)
       ROTD=NEWARR(6)
-   10 READ(IREAD,'(A)',END=130)LINE
+      ATMS=NEWARR(0)
+
+   10 READ(IREAD,'(A)',END=140)LINE
       IF(LINE.EQ.' ') GOTO 130
+
 
 
       LEADSP=.TRUE.
@@ -37,7 +40,6 @@
       II=0
       DO WHILE(II.LE.MAXCHAR)
         II=II+1
-        PRINT *, II
         IF(LINE(II:II).EQ.LSQB)THEN
             JJ=II
             DO WHILE(JJ.LE.MAXCHAR)
@@ -68,7 +70,7 @@
        GOTO 60
       ENDIF
 
-C     FIRST INFO ON THIS LINE IS A TRLBLATION
+C     FIRST INFO ON THIS LINE IS A TRANSLATION
    40 LINE=LINE(ISTART(2)-1:)
       DO I=1,MAXCHAR/2
            IF(LINE.EQ.' ')EXIT
@@ -84,14 +86,14 @@ C     FIRST INFO ON THIS LINE IS A TRLBLATION
                 ISTART(NVALUE)=II
              END IF
              LEADSP=(CHUNK(II:II).EQ.SPACE)
-          ENDDO
+          END DO
 
           TMPC(7)=0
           DO  II=1,5
            TMPC(II+1)=0
            TMPC(II+1)=READN(CHUNK,ISTART(II))
-           IF(TMPC(7).EQ.0.AND.TMPC(II).EQ.0)TMPC(7)=II
-          ENDDO
+           IF(TMPC(7).EQ.0.AND.TMPC(II+1).EQ.0)TMPC(7)=II
+          END DO
 
           IF(TMPC(7).EQ.2) THEN
             CALL ADDTRLB(TMPC,CHUNK(ISTART(4):),
@@ -112,7 +114,7 @@ C     FIRST INFO ON THIS LINE IS A TRLBLATION
 
       GOTO 10
 
-C     FIRST INFO ON THIS LINE IS A TRLB ANGLE
+C     FIRST INFO ON THIS LINE IS A BOND ANGLE
    50 LINE=LINE(ISTART(3)-1:)
       DO I=1,MAXCHAR/2
            IF(LINE.EQ.' ')EXIT
@@ -128,14 +130,14 @@ C     FIRST INFO ON THIS LINE IS A TRLB ANGLE
                 ISTART(NVALUE)=II
              END IF
              LEADSP=(CHUNK(II:II).EQ.SPACE)
-          ENDDO
+          END DO
 
           TMPC(7)=0
           DO  II=1,4
            TMPC(II+2)=0
            TMPC(II+2)=READN(CHUNK,ISTART(II))
-           IF(TMPC(7).EQ.0.AND.TMPC(II).EQ.0)TMPC(7)=II
-          ENDDO
+           IF(TMPC(7).EQ.0.AND.TMPC(II+2).EQ.0)TMPC(7)=II
+          END DO
 
           IF(TMPC(7).EQ.2) THEN
             CALL ADDANGLE(TMPC,CHUNK(ISTART(4):),
@@ -154,6 +156,7 @@ C     FIRST INFO ON THIS LINE IS A TRLB ANGLE
 
       GOTO 10
 
+C     FIRST INFO ON THIS LINE IS A DIHEDRAL ANGLE
    60 LINE=LINE(ISTART(4)-1:)
       DO I=1,MAXCHAR/2
            IF(LINE.EQ.' ')EXIT
@@ -169,17 +172,17 @@ C     FIRST INFO ON THIS LINE IS A TRLB ANGLE
                 ISTART(NVALUE)=II
              END IF
              LEADSP=(CHUNK(II:II).EQ.SPACE)
-          ENDDO
+          END DO
 
           TMPC(7)=0
           DO  II=1,3
            TMPC(II+3)=0
            TMPC(II+3)=READN(CHUNK,ISTART(II))
-           IF(TMPC(7).EQ.0.AND.TMPC(II).EQ.0)TMPC(7)=II
+           IF(TMPC(7).EQ.0.AND.TMPC(II+3).EQ.0)TMPC(7)=II
           ENDDO
 
           IF(TMPC(7).EQ.2) THEN
-            CALL ADDANGLE(TMPC,CHUNK(ISTART(4):),
+            CALL ADDDIHDR(TMPC,CHUNK(ISTART(4):),
      1       INDEX(CHUNK,'F').NE.0,LOPT)
           ENDIF
       END DO
@@ -189,6 +192,8 @@ C     FIRST INFO ON THIS LINE IS A TRLB ANGLE
 
 C       End Laurent
   130 RETURN
+  140 BACKSPACE(IREAD)
+      RETURN
       END
 
       SUBROUTINE SPLIT(STR,DELIMS,BEFORE)
@@ -353,7 +358,7 @@ C       End Laurent
       CALL ADDVAL(TRLB,CONX(2))
       NVALS=NVALS+1
       CALL ADDVAL(TRLB,NVALS)
-      CALL ADDVAL(TRLB,GETLENGTH(ATMS))
+      CALL ADDVAL(TRLB,GETLENGTH(ATMS)+1)
       VALS(NVALS)=CNX(4)
       CALL ADDRANGE(ATMS,RN,CONX(2))
       CALL ADDVAL(TRLB,GETLENGTH(ATMS))
@@ -394,7 +399,7 @@ C       End Laurent
       CALL ADDVAL(ROTB,CONX(1))
       CALL ADDVAL(ROTB,CONX(2))
       CALL ADDVAL(ROTB,CONX(3))
-      CALL ADDVAL(ROTB,GETLENGTH(ATMS))
+      CALL ADDVAL(ROTB,GETLENGTH(ATMS)+1)
       NVALS=NVALS+1
       CALL ADDVAL(ROTB,NVALS)
       VALS(NVALS)=CNX(5)
@@ -459,7 +464,7 @@ C       End Laurent
       CALL ADDVAL(ROTD,CONX(4))
       NVALS=NVALS+1
       CALL ADDVAL(ROTD,NVALS)
-      CALL ADDVAL(ROTD,GETLENGTH(ATMS))
+      CALL ADDVAL(ROTD,GETLENGTH(ATMS)+1)
       VALS(NVALS)=CNX(6)
 
       CALL ADDRANGE(ATMS,RN,CONX(4))

@@ -1,40 +1,3 @@
-      SUBROUTINE BOXING
-          IMPLICIT NONE
-!          INTEGER X(*),Y(*)
-          INTEGER Nsize
-          INTEGER :: NEWARR
-!          POINTER (P, X),(Q,Y)
-          INTEGER P,Q
-          PRINT *, SIZEOF(Nsize)
-!           READ (*,*) Nsize     ! Get the size.
-          Nsize=7
-          P = NEWARR(Nsize)
-          Q = NEWARR(5)
-          CALL PRINT(Q)
-          CALL RESIZE(P,NSIZE)
-          CALL SETLENGTH(P,NSIZE)
-
-          CALL PRINT(P)
-          CALL INIT(P)
-          CALL PRINT(P)
-          CALL DBLSIZE(P)
-          CALL SETLENGTH(P,3*Nsize/2)
-          CALL PRINT(P)
-          CALL PRINT(Q)
-          CALL GETVALS(P,3,6,Q)
-
-
-          CALL PRINT(Q)
-
-          CALL PRINT(P)
-          CALL INIT(P)
-
-          CALL PRINT(P)
-          CALL PRINT(Q)
-          CALL SETVALS(P,1,5,Q)
-          CALL PRINT(P)
-      END
-
       INTEGER FUNCTION NEWARR(L)
 
       INTEGER L
@@ -45,16 +8,15 @@
       CALL RESIZEL(NEWARR,L,0)
       END
 
-
-      SUBROUTINE PRINT(A)
+       SUBROUTINE PRINTARR(A)
        INTEGER A
        INTEGER N
        INTEGER :: GETLENGTH
-       CALL PRINTL(A,GETLENGTH(A))
+       CALL PRINTARRL(A,GETLENGTH(A))
 
       END
 
-      SUBROUTINE PRINTL(A,L)
+      SUBROUTINE PRINTARRL(A,L)
           INTEGER A,L
           INTEGER X(*)
           POINTER(P,X)
@@ -189,10 +151,7 @@ C      A(1:L+2)=Q(1:L+2)
       POINTER(P,X),(Q,Y)
       P=A
       Q=B
-!      CALL PRINT(A)
-
       CALL ARRAYCOPYL(X,I,J,SA,Y,K,L,SB)
-!      CALL PRINT(B)
       END
 
       SUBROUTINE ARRAYCOPYL(A,I,J,SA,B,K,L,SB)
@@ -234,7 +193,7 @@ C      A(1:L+2)=Q(1:L+2)
           POINTER(P,X)
           INTEGER :: GETLENGTH
           P=A
-          IF(X(2).LT.I)X(2)=I
+          IF(GETLENGTH(A).LT.I)CALL SETLENGTH(A,I)
           X(I)=V
       END
 
@@ -265,9 +224,7 @@ C      A(1:L+2)=Q(1:L+2)
 
       IF(GETLENGTH(A).GE.I.AND.GETLENGTH(A).GE.J.AND.I.LE.J)THEN
             CALL ENSURESIZE(RES,(J-I+1))
-!            CALL PRINT(RES)
             CALL GETVALSCHCKD(A,I,J,RES)
-!            CALL PRINT(RES)
           ELSE
              CALL ENSURESIZE(RES,ABS(J-I)+1)
              CALL ZEROL(RES,ABS(J-I)+1)
@@ -278,7 +235,6 @@ C      A(1:L+2)=Q(1:L+2)
       SUBROUTINE GETVALSCHCKD(A,I,J,RES)
       INTEGER A,I,J,RES,L
       INTEGER :: GETLENGTH
-!      CALL PRINT(RES)
       L=GETLENGTH(RES)
       CALL POINTERCOPYL(A,I,J,GETLENGTH(A),RES,1,J-I+1,L)
 

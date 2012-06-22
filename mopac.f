@@ -71,7 +71,6 @@ C     PATAS
 C     PATAS
 
 C       Laurent: Axis Initilization
-      CALL BOXING()
 
       XHAT(1)=1
       YHAT(1)=0

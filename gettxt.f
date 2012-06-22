@@ -10,7 +10,7 @@
       KEYWRD=' '
       KOMENT='    NULL  '
       TITLE ='    NULL  '
-      READ(5,'(A)',END=100,ERR=90)KEYWRD(:80)
+      READ(5,'(A)',END=100,ERR=91)KEYWRD(:80)
       OLDKEY=KEYWRD
       CALL UPCASE(KEYWRD(1:80))
       IF(INDEX(KEYWRD,'SETUP').NE.0)THEN
@@ -29,12 +29,12 @@
          READ(4,'(A)',END=10,ERR=10)KEYWRD(161:240)
          CALL UPCASE(KEYWRD(161:240))
    10    CONTINUE
-         READ(5,'(A)',END=100,ERR=90)KOMENT,TITLE
+         READ(5,'(A)',END=100,ERR=92)KOMENT,TITLE
       ELSEIF(INDEX(KEYWRD(1:80),' +') .NE.0)THEN
 C
 C  READ SECOND KEYWORD LINE
 C
-         READ(5,'(A)',END=100,ERR=90)KEYWRD(81:160)
+         READ(5,'(A)',END=100,ERR=93)KEYWRD(81:160)
          OLDKEY=KEYWRD(81:160)
          CALL UPCASE(KEYWRD(81:160))
          IF(INDEX(KEYWRD(81:160),'SETUP').NE.0)THEN
@@ -55,15 +55,15 @@ C
 C
 C  READ THIRD KEYWORD LINE
 C
-            READ(5,'(A)',END=100,ERR=90)KEYWRD(161:240)
+            READ(5,'(A)',END=100,ERR=94)KEYWRD(161:240)
             CALL UPCASE(KEYWRD(161:240))
          ENDIF
 C
 C  READ TITLE LINE
 C
-         READ(5,'(A)',END=100,ERR=90)KOMENT,TITLE
+         READ(5,'(A)',END=100,ERR=95)KOMENT,TITLE
       ELSEIF(INDEX(KEYWRD(:80),'&').NE.0)THEN
-         READ(5,'(A)',END=100,ERR=90)KEYWRD(81:160)
+         READ(5,'(A)',END=100,ERR=96)KEYWRD(81:160)
          OLDKEY=KEYWRD(81:160)
          CALL UPCASE(KEYWRD(81:160))
          IF(INDEX(KEYWRD(81:160),'SETUP').NE.0)THEN
@@ -81,15 +81,15 @@ C               stop
             REWIND 4
             READ(4,'(A)',END=30,ERR=30)KEYWRD(161:240)
             CALL UPCASE(KEYWRD(161:240))
-            READ(5,'(A)',END=100,ERR=90)TITLE
+            READ(5,'(A)',END=100,ERR=97)TITLE
    30       CONTINUE
          ELSEIF(INDEX(KEYWRD(81:160),'&').NE.0)THEN
-            READ(5,'(A)',END=100,ERR=90)KEYWRD(161:240)
+            READ(5,'(A)',END=100,ERR=98)KEYWRD(161:240)
          ELSE
-            READ(5,'(A)',END=100,ERR=90)TITLE
+            READ(5,'(A)',END=100,ERR=99)TITLE
          ENDIF
       ELSE
-         READ(5,'(A)',END=100,ERR=90)KOMENT,TITLE
+         READ(5,'(A)',END=100,ERR=101)KOMENT,TITLE
       ENDIF
       GOTO 50
    40 WRITE(6,'(A)')' SETUP FILE MISSING OR CORRUPT'
@@ -114,6 +114,27 @@ C               stop
          ENDIF
    80 CONTINUE
       RETURN
+   91 CH='D'
+      GOTO 90
+   92 CH='D'
+      GOTO 90
+   93 CH='D'
+      GOTO 90
+   94 CH='D'
+      GOTO 90
+   95 CH='D'
+      GOTO 90
+   96 CH='D'
+      GOTO 90
+   97 CH='D'
+      GOTO 90
+   98 CH='D'
+      GOTO 90
+   99 CH='D'
+      GOTO 90
+  101 CH='D'
+      GOTO 90
+
    90 WRITE(6,'(A)')' ERROR IN READ OF FIRST THREE LINES'
   100 STOP
       END

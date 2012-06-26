@@ -25,7 +25,7 @@ linux2:
 		gfortran  -fno-automatic -w -O  *.f -o $(EXE) -fno-range-check -fcray-pointer
 		
 linux2debug:
-		gfortran  -fno-automatic -w -O -g *.f -o $(EXE) -fno-range-check -fcray-pointer
+		gfortran  -fno-automatic -w -g *.f -o $(EXE) -fno-range-check -fcray-pointer
 
 
 clean:

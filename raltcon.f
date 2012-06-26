@@ -9,6 +9,7 @@
       LOGICAL LEADSP, APPLIED
       CHARACTER (LEN=MAXCHAR) :: LINE
       CHARACTER (LEN=MAXCHAR) :: CHUNK
+      CHARACTER (LEN=MAXCHAR) :: RN
       DOUBLE PRECISION TMPC(8),VALS(3*NUMATM)
       INTEGER II,JJ,EMPTY(1)
       INTEGER TATMS
@@ -96,15 +97,27 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
           END DO
 
           IF(TMPC(7).EQ.2) THEN
-            CALL ADDTRLB(TMPC,CHUNK(ISTART(4):),
-     1       INDEX(CHUNK,'F').NE.0,LOPT)
+            IF(ISTART(4).EQ.0)THEN
+                RN(:)=''
+            ELSE
+                RN(1:)=CHUNK(ISTART(4):)
+           ENDIF
+            CALL ADDTRLB(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
           ELSEIF(TMPC(7).EQ.3) THEN
-            CALL ADDANGLE(TMPC,CHUNK(ISTART(5):),
-     1       INDEX(CHUNK,'F').NE.0,LOPT)
+            IF(ISTART(5).EQ.0)THEN
+                RN(:)=''
+            ELSE
+                RN(1:)=CHUNK(ISTART(5):)
+          ENDIF
+            CALL ADDANGLE(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
 
           ELSEIF(TMPC(7).EQ.4) THEN
-            CALL ADDDIHDR(TMPC,CHUNK(ISTART(6):),
-     1       INDEX(CHUNK,'F').NE.0,LOPT)
+             IF(ISTART(6).EQ.0)THEN
+                RN(:)=''
+            ELSE
+                RN(1:)=CHUNK(ISTART(6):)
+          ENDIF
+            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
           ENDIF
 
 
@@ -140,11 +153,20 @@ C     FIRST INFO ON THIS LINE IS A BOND ANGLE
           END DO
 
           IF(TMPC(7).EQ.2) THEN
-            CALL ADDANGLE(TMPC,CHUNK(ISTART(4):),
+            IF(ISTART(4).EQ.0)THEN
+                RN(:)=''
+            ELSE
+                RN(1:)=CHUNK(ISTART(4):)
+          ENDIF
+            CALL ADDANGLE(TMPC,RN,
      1       INDEX(CHUNK,'F').NE.0,LOPT)
           ELSEIF(TMPC(7).EQ.3) THEN
-            CALL ADDDIHDR(TMPC,CHUNK(ISTART(5):),
-     1       INDEX(CHUNK,'F').NE.0,LOPT)
+            IF(ISTART(5).EQ.0)THEN
+                RN(:)=''
+            ELSE
+                RN(1:)=CHUNK(ISTART(5):)
+           ENDIF
+            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
 
 
           ENDIF
@@ -182,8 +204,12 @@ C     FIRST INFO ON THIS LINE IS A DIHEDRAL ANGLE
           ENDDO
 
           IF(TMPC(7).EQ.2) THEN
-            CALL ADDDIHDR(TMPC,CHUNK(ISTART(4):),
-     1       INDEX(CHUNK,'F').NE.0,LOPT)
+          IF(ISTART(4).EQ.0)THEN
+            RN(:)=''
+            ELSE
+            RN(1:)=CHUNK(ISTART(4):)
+          ENDIF
+            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
           ENDIF
       END DO
 
@@ -301,40 +327,59 @@ C       End Laurent
 
       END
 
-
       SUBROUTINE ADDRANGE(A,RN,I)
-      CHARACTER RN*(*),TMP*(LEN(RN)),CHUNK*(LEN(RN))
-      INTEGER I,LENSTR,A,RANGESIZE,J,K,L
+      INTEGER :: STRLEN
+      CALL ADDRANGEL(A,RN,I,STRLEN(RN))
+      END
+
+      SUBROUTINE ADDRANGEL(A,RN,I,S)
+      INTEGER I,LENSTR,A,RANGESIZE,J,K,L,M,S
+      CHARACTER RN*(*),TMP*(S),CHUNK*(S)
       LOGICAL :: NINARR
-      TMP=RN(2:LEN(RN)-1)
+      DOUBLE PRECISION :: READA
+      TMP=RN(2:S-1)
+
       CALL ADDVAL(A,I)
-      DO I=0,LENSTR
+      DO II=0,S
         IF(TMP.EQ.' ')EXIT
         CALL SPLIT(TMP,";",CHUNK)
         IF(INDEX(CHUNK,'-').NE.0)THEN
              J=INT(READA(CHUNK,1))
-             K=INT(READA(CHUNK,INDEX(CHUNK,'-')))
+             K=INT(READA(CHUNK,INDEX(CHUNK,'-')+1))
              L=MAX(J,K)
              K=MIN(J,K)
              DO J=K,L
-                IF(NINARR(ATMS,J))THEN
+                IF(NINARR(A,J))THEN
                   CALL ADDVAL(A,J)
                 ENDIF
              END DO
         ELSE
             J=INT(READA(CHUNK,1))
-            IF(NINARR(ATMS,J))THEN
+            IF(NINARR(A,J))THEN
                CALL ADDVAL(A,J)
             ENDIF
         ENDIF
       END DO
       END
 
+      INTEGER FUNCTION STRLEN(STR)
+      CHARACTER STR*(*)
+      INTEGER I
+      DO I=1,LEN(STR)
+      IF(STR(I:I).EQ.'')THEN
+          STRLEN=I-1
+          RETURN
+      ENDIF
+      END DO
+      END
+
       LOGICAL FUNCTION NINARR(A,I)
       INTEGER A,I,N
+      INTEGER :: GETLENGTH,GETVAL
       NINARR=.TRUE.
+      N=GETLENGTH(A)
       DO J=1,N
-        IF(GETVAL(A,I).EQ.I)THEN
+        IF(GETVAL(A,J).EQ.I)THEN
             NINARR=.FALSE.
             RETURN
         ENDIF
@@ -350,6 +395,7 @@ C       End Laurent
      1                  VALS, NVALS
       INTEGER TRLB, ROTB, ROTD, ATMS,ICONXN(6,NUMATM)
       INTEGER I,J,A, NVALS, CONX(3),LOPT(3,NUMATM)
+      INTEGER :: GETLENGTH
       DOUBLE PRECISION CNX(4),VALS(3*NUMATM)
       LOGICAL F
       CONX(1)=INT(CNX(1))
@@ -357,9 +403,10 @@ C       End Laurent
       CALL ADDVAL(TRLB,CONX(1))
       CALL ADDVAL(TRLB,CONX(2))
       NVALS=NVALS+1
-      CALL ADDVAL(TRLB,NVALS)
-      CALL ADDVAL(TRLB,GETLENGTH(ATMS)+1)
       VALS(NVALS)=CNX(4)
+      CALL ADDVAL(TRLB,NVALS)
+
+      CALL ADDVAL(TRLB,GETLENGTH(ATMS)+1)
       CALL ADDRANGE(ATMS,RN,CONX(2))
       CALL ADDVAL(TRLB,GETLENGTH(ATMS))
 
@@ -390,6 +437,7 @@ C       End Laurent
      1                  VALS, NVALS
       INTEGER TRLB, ROTB, ROTD, ATMS,ICONXN(6,NUMATM)
       INTEGER I,J,A, NVALS, CONX(4), PERMUTE,LOPT(3,NUMATM)
+      INTEGER :: GETLENGTH
       DOUBLE PRECISION CNX(5),VALS(3*NUMATM)
       LOGICAL F
 
@@ -399,12 +447,11 @@ C       End Laurent
       CALL ADDVAL(ROTB,CONX(1))
       CALL ADDVAL(ROTB,CONX(2))
       CALL ADDVAL(ROTB,CONX(3))
-      CALL ADDVAL(ROTB,GETLENGTH(ATMS)+1)
+
       NVALS=NVALS+1
       CALL ADDVAL(ROTB,NVALS)
       VALS(NVALS)=CNX(5)
-
-      CALL ADDVAL(ROTB,GETLENGTH(ATMS))
+      CALL ADDVAL(ROTB,GETLENGTH(ATMS)+1)
       CALL ADDRANGE(ATMS,RN,CONX(3))
       CALL ADDVAL(ROTB,GETLENGTH(ATMS))
       IF(F)THEN
@@ -446,28 +493,31 @@ C       End Laurent
       ENDIF
       END
 
-      SUBROUTINE ADDDIHDR(CNX,RN,F)
+      SUBROUTINE ADDDIHDR(CNX,RN,F,LOPT)
       INCLUDE 'SIZES'
       COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
      1                  VALS, NVALS
       INTEGER TRLB, ROTB, ROTD, ATMS,ICONXN(6,NUMATM)
       INTEGER I,J,A, NVALS, CONX(5), PERMUTE,LOPT(3,NUMATM)
+      INTEGER :: GETLENGTH
       DOUBLE PRECISION CNX(6),VALS(3*NUMATM)
       LOGICAL F
       CONX(1)=INT(CNX(1))
       CONX(2)=INT(CNX(2))
       CONX(3)=INT(CNX(3))
-      CONX(3)=INT(CNX(4))
+      CONX(4)=INT(CNX(4))
       CALL ADDVAL(ROTD,CONX(1))
       CALL ADDVAL(ROTD,CONX(2))
       CALL ADDVAL(ROTD,CONX(3))
       CALL ADDVAL(ROTD,CONX(4))
       NVALS=NVALS+1
       CALL ADDVAL(ROTD,NVALS)
+
       CALL ADDVAL(ROTD,GETLENGTH(ATMS)+1)
       VALS(NVALS)=CNX(6)
 
       CALL ADDRANGE(ATMS,RN,CONX(4))
+
       CALL ADDVAL(ROTD,GETLENGTH(ATMS))
       IF(F)THEN
       IF((ICONXN(3,CONX(4)).EQ.0.OR.ICONXN(3,CONX(4)).EQ.CONX(1))

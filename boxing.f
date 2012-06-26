@@ -17,12 +17,13 @@
       END
 
       SUBROUTINE PRINTARRL(A,L)
-          INTEGER A,L
+          INTEGER A,L,Y
           INTEGER X(*)
           POINTER(P,X)
           P=A
           PRINT *,A
           DO I=1,L
+          Y=X(I)
           PRINT *,I,': ', X(I)
           END DO
           RETURN
@@ -109,7 +110,7 @@
               Q=A
 
               Y(1)=S
-              Y(2)=S
+              Y(2)=L
               A=A+DESC*SIZEOF(A)
               Q=A
 
@@ -162,9 +163,9 @@ C      A(1:L+2)=Q(1:L+2)
       END
 
       SUBROUTINE ADDVAL(A,V)
-      INTEGER :: GETLENGTH
       INTEGER A,V
-        CALL SETVAL(A,I,GETLENGTH(A)+1)
+      INTEGER :: GETLENGTH
+        CALL SETVAL(A,(GETLENGTH(A)+1),V)
       END
 
       SUBROUTINE ADDVALS(A,V)
@@ -178,7 +179,7 @@ C      A(1:L+2)=Q(1:L+2)
       INTEGER :: GETSIZE
       IF(GETSIZE(A).LT.I)THEN
       J=0
-   10   IF(I.LE.2**J)THEN
+   10   IF(I.GT.2**J)THEN
           J=J+1
           GOTO 10
       ENDIF
@@ -251,7 +252,7 @@ C      A(1:L+2)=Q(1:L+2)
             CALL SETVALSCHCKD(A,I,J,RES)
       ELSE
             K=0
-   10   IF(I.LE.2**J)THEN
+   10   IF(I.GT.2**J)THEN
           K=K+1
           GOTO 10
       ENDIF

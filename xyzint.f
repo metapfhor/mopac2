@@ -29,8 +29,10 @@
       COMMON /NUMCAL/ NUMCAL
 C             Laurent Modification: added
       COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT(3,3)
-      COMMON /CNSTR / ICONXN(6,NUMATM), APPLIED, INFINT
-      DOUBlE PRECISION DX, DY, DZ, IVAL(3,NUMATM), INFINT,
+      COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
+     1                  VALS, NVALS
+      INTEGER TRLB, ROTB, ROTD, ATMS,ICONXN(6,NUMATM)
+      DOUBlE PRECISION DX, DY, DZ
      1  XYZINIT(3,NUMATM)
 
       COMMON /KEYWRD/ KEYWRD
@@ -41,6 +43,10 @@ C       Laurent End
       IGEOOK=99
 
 C       Laurent Modification: Recenter on the first atom
+      IF(INDEX(KEYWRD,'ALTCON').NE.0.AND..NOT.APPLIED)THEN
+        CALL AALTCON(XYZ,DEGREE)
+        APPLIED=.TRUE.
+      ENDIF
 
       DX=XYZ(1,1)
       DY=XYZ(2,1)
@@ -48,7 +54,9 @@ C       Laurent Modification: Recenter on the first atom
       OFF(1)=OFF(1)+ATOT(1,1)*DX+ATOT(1,2)*DY+ATOT(1,3)*DZ
       OFF(2)=OFF(2)+ATOT(2,1)*DX+ATOT(2,2)*DY+ATOT(2,3)*DZ
       OFF(3)=OFF(3)+ATOT(3,1)*DX+ATOT(3,2)*DY+ATOT(3,3)*DZ
-
+!      OFF(1)=OFF(1)+ATOT(1,1)*DX+ATOT(2,1)*DY+ATOT(3,1)*DZ
+!      OFF(2)=OFF(2)+ATOT(1,2)*DX+ATOT(2,2)*DY+ATOT(3,2)*DZ
+!      OFF(3)=OFF(3)+ATOT(1,3)*DX+ATOT(2,3)*DY+ATOT(3,3)*DZ
 
       DO 40 I=1,NUMAT
         XYZ(1,I)=XYZ(1,I)-DX
@@ -56,10 +64,7 @@ C       Laurent Modification: Recenter on the first atom
         XYZ(3,I)=XYZ(3,I)-DZ
    40 CONTINUE
 
-      IF(INDEX(KEYWRD,'ALTCON').NE.0.AND..NOT.APPLIED)THEN
-        CALL AALTCON(XYZ)
-        APPLIED=.TRUE.
-      ENDIF
+
 C       Laurent End
       IF(.NOT.(ICALCN.NE.NUMCAL).AND.NA(2).EQ.-1 .OR. NA(2).EQ.-2)THEN
          NA(2)=1

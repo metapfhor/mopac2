@@ -4,13 +4,14 @@
       INCLUDE 'SIZES'
       COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
      1                  VALS, NVALS
-      INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM)
-      INTEGER NVALS
-      LOGICAL LEADSP, APPLIED
+      INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS
+      LOGICAL APPLIED
+      DOUBLE PRECISION VALS(3*NUMATM)
+      LOGICAL LEADSP
       CHARACTER (LEN=MAXCHAR) :: LINE
       CHARACTER (LEN=MAXCHAR) :: CHUNK
       CHARACTER (LEN=MAXCHAR) :: RN
-      DOUBLE PRECISION TMPC(8),VALS(3*NUMATM)
+      DOUBLE PRECISION TMPC(8)
       INTEGER II,JJ,EMPTY(1)
       INTEGER TATMS
       DIMENSION ISTART(MAXCHAR/2), LOPT(3,NUMATM)
@@ -19,9 +20,11 @@
      1 /',',' ','[',']','{','}',0,0,0/
 
       TRLB=NEWARR(5)
-      ROTB=NEWARR(5)
-      ROTD=NEWARR(6)
+      ROTB=NEWARR(6)
+      ROTD=NEWARR(7)
       ATMS=NEWARR(0)
+
+!      CALL BLDPER(IREAD)
 
    10 READ(IREAD,'(A)',END=140)LINE
       IF(LINE.EQ.' ') GOTO 130
@@ -389,14 +392,16 @@ C       End Laurent
 
 
       SUBROUTINE ADDTRLB(CNX,RN,F,LOPT)
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INCLUDE 'SIZES'
       COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
      1                  VALS, NVALS
-      INTEGER TRLB, ROTB, ROTD, ATMS,ICONXN(6,NUMATM)
-      INTEGER I,J,A, NVALS, CONX(3),LOPT(3,NUMATM)
+      INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS
+      LOGICAL APPLIED
+      DOUBLE PRECISION VALS(3*NUMATM)
+      INTEGER I,J, CONX(3),LOPT(3,NUMATM)
       INTEGER :: GETLENGTH
-      DOUBLE PRECISION CNX(4),VALS(3*NUMATM)
+      CHARACTER (LEN=MAXCHAR) :: RN
+      DOUBLE PRECISION CNX(4)
       LOGICAL F
       CONX(1)=INT(CNX(1))
       CONX(2)=INT(CNX(2))
@@ -435,10 +440,12 @@ C       End Laurent
       INCLUDE 'SIZES'
       COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
      1                  VALS, NVALS
-      INTEGER TRLB, ROTB, ROTD, ATMS,ICONXN(6,NUMATM)
-      INTEGER I,J,A, NVALS, CONX(4), PERMUTE,LOPT(3,NUMATM)
+      INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS
+      LOGICAL APPLIED
+      DOUBLE PRECISION VALS(3*NUMATM)
+      INTEGER I,J, CONX(4), PERMUTE,LOPT(3,NUMATM)
       INTEGER :: GETLENGTH
-      DOUBLE PRECISION CNX(5),VALS(3*NUMATM)
+      DOUBLE PRECISION CNX(5)
       LOGICAL F
 
       CONX(1)=INT(CNX(1))
@@ -497,10 +504,12 @@ C       End Laurent
       INCLUDE 'SIZES'
       COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
      1                  VALS, NVALS
-      INTEGER TRLB, ROTB, ROTD, ATMS,ICONXN(6,NUMATM)
-      INTEGER I,J,A, NVALS, CONX(5), PERMUTE,LOPT(3,NUMATM)
+      INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS
+      LOGICAL APPLIED
+      DOUBLE PRECISION VALS(3*NUMATM)
+      INTEGER I,J, CONX(5), PERMUTE,LOPT(3,NUMATM)
       INTEGER :: GETLENGTH
-      DOUBLE PRECISION CNX(6),VALS(3*NUMATM)
+      DOUBLE PRECISION CNX(6)
       LOGICAL F
       CONX(1)=INT(CNX(1))
       CONX(2)=INT(CNX(2))
@@ -560,4 +569,224 @@ C       End Laurent
       STOP
       RETURN
       ENDIF
+      END
+
+      SUBROUTINE BLDPER(IREAD)
+      INCLUDE 'SIZES'
+      COMMON /PERMUTE / PR(NUMATM),PRT(NUMATM)
+      INTEGER NBKSPC, INQ(NUMATM), DEP(NUMATM)
+      LOGICAL LEADSP
+      CHARACTER (LEN=MAXCHAR) :: LINE
+      CHARACTER (LEN=MAXCHAR) :: CHUNK
+      CHARACTER (LEN=MAXCHAR) :: RN
+      DOUBLE PRECISION TMPC(8)
+      INTEGER II,JJ,EMPTY(1)
+      INTEGER TATMS
+      DIMENSION ISTART(MAXCHAR/2), LOPT(3,NUMATM)
+      CHARACTER SPACE*1,COMMA*1,LSQB*1,RSQB*1,LCRB*1,RCRB*1
+      DATA COMMA,SPACE,LSQB,RSQB,LCRB,RCRB,II,JJ,NVALS
+     1 /',',' ','[',']','{','}',0,0,0/
+
+
+
+      NBKSPC=0
+   10 READ(IREAD,'(A)',END=140)LINE
+      NBKSPC=NBKSPC+LEN(LINE)
+      IF(LINE.EQ.' ') GOTO 130
+
+      LEADSP=.TRUE.
+      NVALUE=0
+      DO 20 I=1,MAXCHAR
+         IF (LEADSP.AND.LINE(I:I).NE.SPACE) THEN
+            NVALUE=NVALUE+1
+            ISTART(NVALUE)=I
+         END IF
+         LEADSP=(LINE(I:I).EQ.SPACE)
+   20 CONTINUE
+
+      II=0
+      DO WHILE(II.LE.MAXCHAR)
+        II=II+1
+        IF(LINE(II:II).EQ.LSQB)THEN
+            JJ=II
+            DO WHILE(JJ.LE.MAXCHAR)
+            JJ=JJ+1
+                IF(LINE(JJ:JJ).EQ.COMMA)THEN
+                    LINE(JJ:JJ)=';'
+                ELSEIF(LINE(JJ:JJ).EQ.RSQB)THEN
+                    II=JJ+1
+                    JJ=MAXCHAR
+                ENDIF
+           END DO
+        ENDIF
+      END DO
+
+      TMPC(7)=0
+      DO I=1,6
+       TMPC(I)=0
+       TMPC(I)=READN(LINE,ISTART(I))
+       IF(TMPC(7).EQ.0.AND.TMPC(I).EQ.0)TMPC(7)=I
+      END DO
+
+
+      IF(TMPC(7).EQ.3) THEN
+       GOTO 40
+      ELSEIF(TMPC(7).EQ.4) THEN
+       GOTO 50
+      ELSEIF(TMPC(7).EQ.5) THEN
+       GOTO 60
+      ENDIF
+
+C     FIRST INFO ON THIS LINE IS A TRANSLATION
+   40 LINE=LINE(ISTART(2)-1:)
+      DO I=1,MAXCHAR/2
+           IF(LINE.EQ.' ')EXIT
+          CALL SPLIT(LINE,',',CHUNK)
+          LEADSP=.TRUE.
+          NVALUE=0
+          DO II=1,MAXCHAR/2
+            ISTART(II)=0
+          END DO
+          DO II=1,MAXCHAR
+             IF (LEADSP.AND.CHUNK(II:II).NE.SPACE) THEN
+                NVALUE=NVALUE+1
+                ISTART(NVALUE)=II
+             END IF
+             LEADSP=(CHUNK(II:II).EQ.SPACE)
+          END DO
+
+          TMPC(7)=0
+          DO  II=1,5
+           TMPC(II+1)=0
+           TMPC(II+1)=READN(CHUNK,ISTART(II))
+           IF(TMPC(7).EQ.0.AND.TMPC(II+1).EQ.0)TMPC(7)=II
+          END DO
+
+          IF(TMPC(7).EQ.2) THEN
+            IF(ISTART(4).EQ.0)THEN
+                RN(:)=''
+            ELSE
+                RN(1:)=CHUNK(ISTART(4):)
+           ENDIF
+            CALL ADDTRLB(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
+          ELSEIF(TMPC(7).EQ.3) THEN
+            IF(ISTART(5).EQ.0)THEN
+                RN(:)=''
+            ELSE
+                RN(1:)=CHUNK(ISTART(5):)
+          ENDIF
+            CALL ADDANGLE(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
+
+          ELSEIF(TMPC(7).EQ.4) THEN
+             IF(ISTART(6).EQ.0)THEN
+                RN(:)=''
+            ELSE
+                RN(1:)=CHUNK(ISTART(6):)
+          ENDIF
+            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
+          ENDIF
+
+
+
+      END DO
+
+
+      GOTO 10
+
+C     FIRST INFO ON THIS LINE IS A BOND ANGLE
+   50 LINE=LINE(ISTART(3)-1:)
+      DO I=1,MAXCHAR/2
+           IF(LINE.EQ.' ')EXIT
+          CALL SPLIT(LINE,',',CHUNK)
+          LEADSP=.TRUE.
+          NVALUE=0
+          DO II=1,MAXCHAR/2
+            ISTART(II)=0
+          END DO
+          DO II=1,MAXCHAR
+             IF (LEADSP.AND.CHUNK(II:II).NE.SPACE) THEN
+                NVALUE=NVALUE+1
+                ISTART(NVALUE)=II
+             END IF
+             LEADSP=(CHUNK(II:II).EQ.SPACE)
+          END DO
+
+          TMPC(7)=0
+          DO  II=1,4
+           TMPC(II+2)=0
+           TMPC(II+2)=READN(CHUNK,ISTART(II))
+           IF(TMPC(7).EQ.0.AND.TMPC(II+2).EQ.0)TMPC(7)=II
+          END DO
+
+          IF(TMPC(7).EQ.2) THEN
+            IF(ISTART(4).EQ.0)THEN
+                RN(:)=''
+            ELSE
+                RN(1:)=CHUNK(ISTART(4):)
+          ENDIF
+            CALL ADDANGLE(TMPC,RN,
+     1       INDEX(CHUNK,'F').NE.0,LOPT)
+          ELSEIF(TMPC(7).EQ.3) THEN
+            IF(ISTART(5).EQ.0)THEN
+                RN(:)=''
+            ELSE
+                RN(1:)=CHUNK(ISTART(5):)
+           ENDIF
+            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
+
+
+          ENDIF
+
+
+
+      END DO
+
+
+      GOTO 10
+
+C     FIRST INFO ON THIS LINE IS A DIHEDRAL ANGLE
+   60 LINE=LINE(ISTART(4)-1:)
+      DO I=1,MAXCHAR/2
+           IF(LINE.EQ.' ')EXIT
+          CALL SPLIT(LINE,',',CHUNK)
+          LEADSP=.TRUE.
+          NVALUE=0
+          DO II=1,MAXCHAR/2
+            ISTART(II)=0
+          END DO
+          DO II=1,MAXCHAR
+             IF (LEADSP.AND.CHUNK(II:II).NE.SPACE) THEN
+                NVALUE=NVALUE+1
+                ISTART(NVALUE)=II
+             END IF
+             LEADSP=(CHUNK(II:II).EQ.SPACE)
+          END DO
+
+          TMPC(7)=0
+          DO  II=1,3
+           TMPC(II+3)=0
+           TMPC(II+3)=READN(CHUNK,ISTART(II))
+           IF(TMPC(7).EQ.0.AND.TMPC(II+3).EQ.0)TMPC(7)=II
+          ENDDO
+
+          IF(TMPC(7).EQ.2) THEN
+          IF(ISTART(4).EQ.0)THEN
+            RN(:)=''
+            ELSE
+            RN(1:)=CHUNK(ISTART(4):)
+          ENDIF
+            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
+          ENDIF
+      END DO
+
+
+      GOTO 10
+
+
+
+
+  140 NBKSPC=NBKSPC+1
+  130 DO I=1,NBKSPC
+      BACKSPACE(IREAD)
+      END DO
       END

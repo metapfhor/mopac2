@@ -51,6 +51,7 @@ C     PATAS
 C     PATAS
 C       Laurent Modification
       COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT(3,3)
+      COMMON /ENERGY / EQLBR
 C       Laurent end
 ************************************************************************
 *
@@ -181,6 +182,8 @@ C
       WRITE(6,'(////10X,''FINAL HEAT OF FORMATION ='',F17.5,'' KCAL''
      1)')FUNCT
       IF(LATOM.EQ.0) WRITE(6,'(/)')
+      WRITE(6,'(    10X,''EQUILIBRIUM ENERGY      ='',F17.5,'' KCAL''
+     1)')EQLBR
       WRITE(6,'(    10X,''TOTAL ENERGY            ='',F17.5,'' EV''
      1)')ELECT+ENUCLR
       WRITE(6,'(    10X,''ELECTRONIC ENERGY       ='',F17.5,'' EV''

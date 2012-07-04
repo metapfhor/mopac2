@@ -85,6 +85,7 @@ C     PATAS
       COMMON /CLASES/ ICLASS(NUMATM)
 C       Laurent Modification
       COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT(3,3)
+
 C       Laurent end
 C**********************************************************************
 C* SHIHAO'S MODIFICATION START
@@ -584,6 +585,7 @@ C        1  L,ELEMNT(LABELS(I)),(COORD(J,L),J=1,3)
      4 ATOT(3,1)*COORD(1,I)+ATOT(3,2)*COORD(2,I)+
      5 ATOT(3,3)*COORD(3,I)+OFF(3)
 C       Laurent End
+
 
 
   240       CONTINUE

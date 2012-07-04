@@ -27,10 +27,6 @@
       COMMON /ATMASS/ ATMASS(NUMATM)
       COMMON /ATOMTX/ LTXT, TXTATM(NUMATM)
       COMMON /KEYWRD/ KEYWRD
-C       Laurent Modification
-      COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
-     1                  VALS, NVALS
-C       End Laurent
       DIMENSION ISTART(40), XYZ(3,NUMATM), VALUE(4)
 C       Laurent Modification
       INTEGER ICONXN(6,NUMATM),CONX(4),TRLB, ROTB, ROTD, ATMS
@@ -229,9 +225,24 @@ C       End Laurent
           LOPT(2,NATOMS)   =READA(LINE,ISTART(5))
           LOPT(3,NATOMS)   =READA(LINE,ISTART(7))
          ELSE
-          LOPT(1,NATOMS)=1
-          LOPT(2,NATOMS)=1
-          LOPT(3,NATOMS)=1
+            IF(NATOMS.EQ.1)THEN
+                LOPT(1,NATOMS)=0
+                LOPT(2,NATOMS)=0
+                LOPT(3,NATOMS)=0
+            ELSEIF(NATOMS.EQ.2)THEN
+                LOPT(1,NATOMS)=1
+                LOPT(2,NATOMS)=0
+                LOPT(3,NATOMS)=0
+            ELSEIF(NATOMS.EQ.3)THEN
+                LOPT(1,NATOMS)=1
+                LOPT(2,NATOMS)=1
+                LOPT(3,NATOMS)=0
+            ELSE
+                LOPT(1,NATOMS)=1
+                LOPT(2,NATOMS)=1
+                LOPT(3,NATOMS)=1
+            ENDIF
+
          ENDIF
          DO 90 I=3,7,2
             IF(ICHAR(LINE(ISTART(I):ISTART(I))).GE.ICAPA.AND.

@@ -86,6 +86,9 @@ C     PATAS
 C       Laurent Modification
       COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT(3,3)
 
+      COMMON /PERMUTE /PR,PRT
+
+
 C       Laurent end
 C**********************************************************************
 C* SHIHAO'S MODIFICATION START
@@ -93,8 +96,11 @@ C* Added:
       COMMON /MOLCONST/ CTYPE,ITORS(4),CVALUE
 C* SHIHAO'S MODIFICATION END
 C**********************************************************************
-
+C       LAURENT MODIFICATION
+      INTEGER PR(NUMATM),PRT(NUMATM)
+C       END LAURENT
 C     PATAS
+
       LOGICAL INT, AIGEO, ISOK
       SAVE SPACE, SPACE2, IREACT, INT
       DIMENSION COORD(3,NUMATM),VALUE(40)
@@ -574,16 +580,18 @@ C
      1  15X,''Y'',15X,''Z'',/)')
             L=0
             DO 240 I=1,NATOMS
-               IF(LABELS(I) .EQ. 99.OR.LABELS(I).EQ.107) GOTO 240
+               IF(LABELS(PRT(I)) .EQ. 99.OR.LABELS(PRT(I)).EQ.107)THEN
+                GOTO 240
+               ENDIF
                L=L+1
                WRITE(6,'(I6,8X,A2,4X,3F16.10)')
 C       Laurent Modification: Added coordinate backtransform
 C        1  L,ELEMNT(LABELS(I)),(COORD(J,L),J=1,3)
-     1  L,ELEMNT(LABELS(I)),ATOT(1,1)*COORD(1,I)+ATOT(1,2)*COORD(2,I)+
-     2 ATOT(1,3)*COORD(3,I)+OFF(1),ATOT(2,1)*COORD(1,I)+
-     3 ATOT(2,2)*COORD(2,I)+ ATOT(2,3)*COORD(3,I)+OFF(2),
-     4 ATOT(3,1)*COORD(1,I)+ATOT(3,2)*COORD(2,I)+
-     5 ATOT(3,3)*COORD(3,I)+OFF(3)
+     1  L,ELEMNT(LABELS(PRT(I))),ATOT(1,1)*COORD(1,PRT(I))+
+     2ATOT(1,2)*COORD(2,PRT(I))+ATOT(1,3)*COORD(3,PRT(I))+OFF(1)
+     3,ATOT(2,1)*COORD(1,PRT(I))+ ATOT(2,2)*COORD(2,PRT(I))+
+     4 ATOT(2,3)*COORD(3,PRT(I))+OFF(2),ATOT(3,1)*COORD(1,PRT(I))+
+     5ATOT(3,2)*COORD(2,PRT(I))+ATOT(3,3)*COORD(3,PRT(I))+OFF(3)
 C       Laurent End
 
 

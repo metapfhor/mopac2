@@ -1,3 +1,11 @@
+**************************************************************************
+*
+*       PACKAGE FOR READING IN ALTERNATIVE GEOMETRIC CONSTRAINTS
+*       PRODUCT OF NSERC SUMMER RESEARCH BY LAURENT MACKAY
+*       USE "ALTCON" KEYWORD TO ACCESS THIS
+*
+*************************************************************************
+
       SUBROUTINE RALTCON(IREAD,LOPT)
 
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -11,7 +19,7 @@
       CHARACTER (LEN=MAXCHAR) :: LINE
       CHARACTER (LEN=MAXCHAR) :: CHUNK
       CHARACTER (LEN=MAXCHAR) :: RN
-      DOUBLE PRECISION TMPC(8)
+      DOUBLE PRECISION TMPC(8),XYZ(3,NUMATM)
       INTEGER II,JJ,EMPTY(1)
       INTEGER TATMS
       DIMENSION ISTART(MAXCHAR/2), LOPT(3,NUMATM)
@@ -24,12 +32,10 @@
       ROTD=NEWARR(7)
       ATMS=NEWARR(0)
 
-!      CALL BLDPER(IREAD)
+      CALL BLDPERM(IREAD)
 
    10 READ(IREAD,'(A)',END=140)LINE
       IF(LINE.EQ.' ') GOTO 130
-
-
 
       LEADSP=.TRUE.
       NVALUE=0
@@ -395,6 +401,8 @@ C       End Laurent
       INCLUDE 'SIZES'
       COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
      1                  VALS, NVALS
+      COMMON /PERMUTE / PR,PRT
+      INTEGER PR(NUMATM),PRT(NUMATM)
       INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS
       LOGICAL APPLIED
       DOUBLE PRECISION VALS(3*NUMATM)
@@ -403,8 +411,8 @@ C       End Laurent
       CHARACTER (LEN=MAXCHAR) :: RN
       DOUBLE PRECISION CNX(4)
       LOGICAL F
-      CONX(1)=INT(CNX(1))
-      CONX(2)=INT(CNX(2))
+      CONX(1)=PRT(INT(CNX(1)))
+      CONX(2)=PRT(INT(CNX(2)))
       CALL ADDVAL(TRLB,CONX(1))
       CALL ADDVAL(TRLB,CONX(2))
       NVALS=NVALS+1
@@ -430,7 +438,10 @@ C       End Laurent
       GOTO 330
       ENDIF
       RETURN
-  330 WRITE(6,'(A)')'Impossible Gemoetric Constraints:', RN
+  330 WRITE(6,'(A,I3.1,A4,I3.1,A,I3.1,I3.1,I3.1,A)')
+     1 'Impossible Gemoetric Constraints:',CONX(1), '->',
+     2 CONX(2) ,' (',PRT(ICONXN(1,CONX(2))),PRT(ICONXN(2,CONX(2))),
+     3 PRT(ICONXN(3,CONX(2))),' )  '//RN
       STOP
       RETURN
       ENDIF
@@ -440,6 +451,8 @@ C       End Laurent
       INCLUDE 'SIZES'
       COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
      1                  VALS, NVALS
+      COMMON /PERMUTE / PR,PRT
+      INTEGER PR(NUMATM),PRT(NUMATM)
       INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS
       LOGICAL APPLIED
       DOUBLE PRECISION VALS(3*NUMATM)
@@ -448,9 +461,16 @@ C       End Laurent
       DOUBLE PRECISION CNX(5)
       LOGICAL F
 
-      CONX(1)=INT(CNX(1))
-      CONX(2)=INT(CNX(2))
-      CONX(3)=INT(CNX(3))
+      CONX(1)=PRT(INT(CNX(1)))
+      CONX(2)=PRT(INT(CNX(2)))
+      CONX(3)=PRT(INT(CNX(3)))
+
+      IF(ABS(CNX(5)-180.D0).LE.1D-3)THEN
+        CALL DETLINPEN(CONX(1),CONX(2),CONX(3))
+        RETURN
+      ENDIF
+
+
       CALL ADDVAL(ROTB,CONX(1))
       CALL ADDVAL(ROTB,CONX(2))
       CALL ADDVAL(ROTB,CONX(3))
@@ -504,6 +524,8 @@ C       End Laurent
       INCLUDE 'SIZES'
       COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
      1                  VALS, NVALS
+      COMMON /PERMUTE / PR,PRT
+      INTEGER PR(NUMATM),PRT(NUMATM)
       INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS
       LOGICAL APPLIED
       DOUBLE PRECISION VALS(3*NUMATM)
@@ -511,10 +533,10 @@ C       End Laurent
       INTEGER :: GETLENGTH
       DOUBLE PRECISION CNX(6)
       LOGICAL F
-      CONX(1)=INT(CNX(1))
-      CONX(2)=INT(CNX(2))
-      CONX(3)=INT(CNX(3))
-      CONX(4)=INT(CNX(4))
+      CONX(1)=PRT(INT(CNX(1)))
+      CONX(2)=PRT(INT(CNX(2)))
+      CONX(3)=PRT(INT(CNX(3)))
+      CONX(4)=PRT(INT(CNX(4)))
       CALL ADDVAL(ROTD,CONX(1))
       CALL ADDVAL(ROTD,CONX(2))
       CALL ADDVAL(ROTD,CONX(3))
@@ -571,16 +593,90 @@ C       End Laurent
       ENDIF
       END
 
-      SUBROUTINE BLDPER(IREAD)
+      SUBROUTINE DETLINPEN(I,J,K)
       INCLUDE 'SIZES'
-      COMMON /PERMUTE / PR(NUMATM),PRT(NUMATM)
+      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF
+      INTEGER I,J,K,PI,PJ,PK
+      DOUBLE PRECISION PAXIS(3),POFF(3),KF
+      DATA PI,PJ,PK /0,0,0/
+      IF(PI.NE.0)THEN
+        WRITE(6,'(A)')'ONLY ONE LINEARIZATION ALLOWED'
+      ENDIF
+      IF(I.EQ.K.OR.I.EQ.J.OR.J.EQ.K)THEN
+        WRITE(6,'(A,3I5.2)')'IMPOSSIBLE LINEARIZATION',I,J,K
+        STOP
+      ELSE
+C       THINGS BECOME SOMEWHAT HECTIC IF WE ARE DEALING WITH THE FIRST TWO ATOMS
+          IF(I.EQ.1.OR.J.EQ.1.OR.K.EQ.1)THEN
+              IF(I.EQ.1)THEN
+                PI=I
+                IF(J.EQ.2)THEN
+                    PJ=J
+                    PK=K
+                ELSE
+                    IF(K.EQ.2)THEN
+                        PJ=K
+                        PK=J
+                    ELSE
+                        PJ=J
+                        PK=K
+                    ENDIF
+                ENDIF
+              ENDIF
+              IF(J.EQ.1)THEN
+                  PI=J
+                  IF(I.EQ.2)THEN
+                      PJ=I
+                      PK=K
+                  ELSE
+                      IF(K.EQ.2)THEN
+                          PJ=K
+                          PK=I
+                      ELSE
+                          PJ=I
+                          PK=K
+                      ENDIF
+                  ENDIF
+              ENDIF
+              IF(K.EQ.1)THEN
+                  PI=K
+                  IF(I.EQ.2)THEN
+                      PJ=I
+                      PK=J
+                  ELSE
+                      IF(J.EQ.2)THEN
+                          PJ=J
+                          PK=I
+                      ELSE
+                          PJ=I
+                          PK=J
+                      ENDIF
+                  ENDIF
+              ENDIF
+          ELSE
+              PI=I
+              PJ=J
+              PK=K
+          ENDIF
+      ENDIF
+
+
+
+      END
+
+      SUBROUTINE BLDPERM(IREAD)
+      INCLUDE 'SIZES'
+      COMMON /PERMUTE / PR,PRT
+      INTEGER PR(NUMATM),PRT(NUMATM)
       INTEGER NBKSPC, INQ(NUMATM), DEP(NUMATM)
       LOGICAL LEADSP
       CHARACTER (LEN=MAXCHAR) :: LINE
       CHARACTER (LEN=MAXCHAR) :: CHUNK
       CHARACTER (LEN=MAXCHAR) :: RN
+      LOGICAL :: NINARR
+      DOUBLE PRECISION :: READN
       DOUBLE PRECISION TMPC(8)
-      INTEGER II,JJ,EMPTY(1)
+      INTEGER II,JJ,CONX(8),MINDEP,TMPDEP,TMPIND
       INTEGER TATMS
       DIMENSION ISTART(MAXCHAR/2), LOPT(3,NUMATM)
       CHARACTER SPACE*1,COMMA*1,LSQB*1,RSQB*1,LCRB*1,RCRB*1
@@ -591,7 +687,7 @@ C       End Laurent
 
       NBKSPC=0
    10 READ(IREAD,'(A)',END=140)LINE
-      NBKSPC=NBKSPC+LEN(LINE)
+      NBKSPC=NBKSPC+1
       IF(LINE.EQ.' ') GOTO 130
 
       LEADSP=.TRUE.
@@ -631,10 +727,10 @@ C       End Laurent
 
       IF(TMPC(7).EQ.3) THEN
        GOTO 40
-      ELSEIF(TMPC(7).EQ.4) THEN
-       GOTO 50
-      ELSEIF(TMPC(7).EQ.5) THEN
-       GOTO 60
+!      ELSEIF(TMPC(7).EQ.4) THEN
+!       GOTO 50
+!      ELSEIF(TMPC(7).EQ.5) THEN
+!       GOTO 60
       ENDIF
 
 C     FIRST INFO ON THIS LINE IS A TRANSLATION
@@ -663,77 +759,20 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
           END DO
 
           IF(TMPC(7).EQ.2) THEN
-            IF(ISTART(4).EQ.0)THEN
-                RN(:)=''
+            CONX(1)=INT(TMPC(1))
+            CONX(2)=INT(TMPC(2))
+
+
+            IF(DEP(CONX(2)).EQ.0)THEN
+                DEP(CONX(2))=NEWARR(0)
+                CALL ADDVAL(DEP(CONX(2)),CONX(1))
             ELSE
-                RN(1:)=CHUNK(ISTART(4):)
-           ENDIF
-            CALL ADDTRLB(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
+                CALL ADDVAL(DEP(CONX(2)),CONX(1))
+            ENDIF
+
           ELSEIF(TMPC(7).EQ.3) THEN
-            IF(ISTART(5).EQ.0)THEN
-                RN(:)=''
-            ELSE
-                RN(1:)=CHUNK(ISTART(5):)
-          ENDIF
-            CALL ADDANGLE(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
 
           ELSEIF(TMPC(7).EQ.4) THEN
-             IF(ISTART(6).EQ.0)THEN
-                RN(:)=''
-            ELSE
-                RN(1:)=CHUNK(ISTART(6):)
-          ENDIF
-            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
-          ENDIF
-
-
-
-      END DO
-
-
-      GOTO 10
-
-C     FIRST INFO ON THIS LINE IS A BOND ANGLE
-   50 LINE=LINE(ISTART(3)-1:)
-      DO I=1,MAXCHAR/2
-           IF(LINE.EQ.' ')EXIT
-          CALL SPLIT(LINE,',',CHUNK)
-          LEADSP=.TRUE.
-          NVALUE=0
-          DO II=1,MAXCHAR/2
-            ISTART(II)=0
-          END DO
-          DO II=1,MAXCHAR
-             IF (LEADSP.AND.CHUNK(II:II).NE.SPACE) THEN
-                NVALUE=NVALUE+1
-                ISTART(NVALUE)=II
-             END IF
-             LEADSP=(CHUNK(II:II).EQ.SPACE)
-          END DO
-
-          TMPC(7)=0
-          DO  II=1,4
-           TMPC(II+2)=0
-           TMPC(II+2)=READN(CHUNK,ISTART(II))
-           IF(TMPC(7).EQ.0.AND.TMPC(II+2).EQ.0)TMPC(7)=II
-          END DO
-
-          IF(TMPC(7).EQ.2) THEN
-            IF(ISTART(4).EQ.0)THEN
-                RN(:)=''
-            ELSE
-                RN(1:)=CHUNK(ISTART(4):)
-          ENDIF
-            CALL ADDANGLE(TMPC,RN,
-     1       INDEX(CHUNK,'F').NE.0,LOPT)
-          ELSEIF(TMPC(7).EQ.3) THEN
-            IF(ISTART(5).EQ.0)THEN
-                RN(:)=''
-            ELSE
-                RN(1:)=CHUNK(ISTART(5):)
-           ENDIF
-            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
-
 
           ENDIF
 
@@ -743,45 +782,6 @@ C     FIRST INFO ON THIS LINE IS A BOND ANGLE
 
 
       GOTO 10
-
-C     FIRST INFO ON THIS LINE IS A DIHEDRAL ANGLE
-   60 LINE=LINE(ISTART(4)-1:)
-      DO I=1,MAXCHAR/2
-           IF(LINE.EQ.' ')EXIT
-          CALL SPLIT(LINE,',',CHUNK)
-          LEADSP=.TRUE.
-          NVALUE=0
-          DO II=1,MAXCHAR/2
-            ISTART(II)=0
-          END DO
-          DO II=1,MAXCHAR
-             IF (LEADSP.AND.CHUNK(II:II).NE.SPACE) THEN
-                NVALUE=NVALUE+1
-                ISTART(NVALUE)=II
-             END IF
-             LEADSP=(CHUNK(II:II).EQ.SPACE)
-          END DO
-
-          TMPC(7)=0
-          DO  II=1,3
-           TMPC(II+3)=0
-           TMPC(II+3)=READN(CHUNK,ISTART(II))
-           IF(TMPC(7).EQ.0.AND.TMPC(II+3).EQ.0)TMPC(7)=II
-          ENDDO
-
-          IF(TMPC(7).EQ.2) THEN
-          IF(ISTART(4).EQ.0)THEN
-            RN(:)=''
-            ELSE
-            RN(1:)=CHUNK(ISTART(4):)
-          ENDIF
-            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
-          ENDIF
-      END DO
-
-
-      GOTO 10
-
 
 
 
@@ -789,4 +789,75 @@ C     FIRST INFO ON THIS LINE IS A DIHEDRAL ANGLE
   130 DO I=1,NBKSPC
       BACKSPACE(IREAD)
       END DO
+
+      DO I=1,NUMATM
+          PR(I)=I
+          PRT(I)=I
+      END DO
+
+      DO I=1,NUMATM
+         MINDEP=0
+         DO J=I,1,-1
+         IF(DEP(J).NE.0.AND.(.NOT.NINARR(DEP(J),I)))MINDEP=J
+         END DO
+         IF(MINDEP.NE.0)THEN
+            TMPDEP=DEP(I)
+            TMPIND=PR(I)
+            DO J=I,MINDEP+1,-1
+                PR(J)=PR(J-1)
+                DEP(J)=DEP(J-1)
+            END DO
+            PR(MINDEP)=TMPIND
+            DEP(MINDEP)=TMPDEP
+         ENDIF
+      END DO
+      CALL CALCPRT
+      RETURN
+
+  150 WRITE(6,'(A)')'IMPOSSIBLE DEPENDENCIES'
+      STOP
+      END
+
+      SUBROUTINE CALCPRT()
+      INCLUDE 'SIZES'
+      COMMON /PERMUTE / PR,PRT
+      INTEGER PR(NUMATM),PRT(NUMATM)
+      DO I=1,NUMATM
+        DO J=1,NUMATM
+            IF(PR(J).EQ.I)PRT(I)=J
+        END DO
+      END DO
+      END
+
+      SUBROUTINE PERATMS(XYZ)
+      INCLUDE 'SIZES'
+      COMMON /PERMUTE / PR,PRT
+      COMMON /GEOKST/ NATOMS,LABELS,NA(NUMATM),NB(NUMATM),NC(NUMATM)
+      INTEGER PR(NUMATM),PRT(NUMATM),LABELS(NUMATM),TMPLBL(NUMATM)
+      DOUBLE PRECISION XYZ(3,NUMATM), TMPXYZ(3,NUMATM)
+
+      DO I=1,NUMATM
+      TMPXYZ(:,I)=XYZ(:,PR(I))
+      TMPLBL(I)=LABELS(PR(I))
+      END DO
+      XYZ(:,1:NUMATM)=TMPXYZ(:,1:NUMATM)
+      LABELS(:)=TMPLBL(:)
+
+      END
+
+
+      SUBROUTINE UNPERATMS(XYZ)
+      INCLUDE 'SIZES'
+      COMMON /PERMUTE / PR,PRT
+      COMMON /GEOKST/ NATOMS,LABELS,NA(NUMATM),NB(NUMATM),NC(NUMATM)
+      INTEGER PR(NUMATM),PRT(NUMATM),LABELS(NUMATM),TMPLBL(NUMATM)
+      DOUBLE PRECISION XYZ(3,NUMATM), TMPXYZ(3,NUMATM)
+
+      DO I=1,NUMATM
+      TMPXYZ(:,I)=XYZ(:,PRT(I))
+      TMPLBL(I)=LABELS(PRT(I))
+      END DO
+      XYZ(:,1:NUMATM)=TMPXYZ(:,1:NUMATM)
+      LABELS(:)=TMPLBL(:)
+
       END

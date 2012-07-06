@@ -52,6 +52,8 @@ C     PATAS
 C       Laurent Modification
       COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT(3,3)
       COMMON /ENERGY / EQLBR
+      COMMON /PERMUTE / PR,PRT
+      INTEGER PR(NUMATM),PRT(NUMATM)
 C       Laurent end
 ************************************************************************
 *
@@ -436,11 +438,12 @@ C#  32  CONTINUE
 C       Laurent Modification: Added coordinate backtransform
         WRITE(6,'(I6,8X,A2,4X,F16.10,F16.10,F16.10)')
 C     1  (I,ELEMNT(NAT(I)),(COORD(J,I),J=1,3),I=1,NUMAT)
-     1  (I,ELEMNT(NAT(I)),ATOT(1,1)*COORD(1,I)+ATOT(1,2)*COORD(2,I)+
-     2 ATOT(1,3)*COORD(3,I)+OFF(1),ATOT(2,1)*COORD(1,I)+
-     3 ATOT(2,2)*COORD(2,I)+ ATOT(2,3)*COORD(3,I)+OFF(2),
-     4 ATOT(3,1)*COORD(1,I)+ATOT(3,2)*COORD(2,I)+
-     5 ATOT(3,3)*COORD(3,I)+OFF(3),I=1,NUMAT)
+     1  (I,ELEMNT(NAT(PRT(I))),ATOT(1,1)*COORD(1,PRT(I))+
+     2 ATOT(1,2)*COORD(2,PRT(I))+ ATOT(1,3)*COORD(3,PRT(I))+
+     3 OFF(1),ATOT(2,1)*COORD(1,PRT(I))+ATOT(2,2)*COORD(2,PRT(I))+
+     4 ATOT(2,3)*COORD(3,PRT(I))+OFF(2), ATOT(3,1)*COORD(1,PRT(I))+
+     5 ATOT(3,2)*COORD(2,PRT(I))+ATOT(3,3)*COORD(3,PRT(I))+OFF(3),
+     6 I=1,NUMAT)
 C       Laurent End
       ENDIF
       IF(NORBS.GT.0) THEN

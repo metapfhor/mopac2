@@ -1,3 +1,12 @@
+**************************************************************************
+*
+*       PACKAGE FOR APPLYING ALTERNATIVE GEOMETRIC CONSTRAINTS
+*       PRODUCT OF NSERC SUMMER RESEARCH BY LAURENT MACKAY
+*       USE "ALTCON" KEYWORD TO ACCESS THIS
+*
+*************************************************************************
+
+
       SUBROUTINE AALTCON(XYZ,DEGREE)
       INCLUDE 'SIZES'
       DOUBLE PRECISION XYZ(3,NUMATM),DEGREE
@@ -15,6 +24,9 @@
       B=ROTB
       D=ROTD
       I=0
+      CALL PERATMS(XYZ)
+
+
    10 IF((I+5).LE.GETLENGTH(TRLB))THEN
       CALL SETRADI(XYZ,TRANSL(I+1),TRANSL(I+2),VALS(TRANSL(I+3)),
      1 ATOMS(TRANSL(I+4):TRANSL(I+5)),TRANSL(I+5)-TRANSL(I+4)+1)
@@ -42,13 +54,17 @@
       I=I+7
       GOTO 50
       END IF
+
+      CALL SETLINPEN(XYZ)
       END
 
       SUBROUTINE SETRADI(XYZ,I,J,R,ATMS,NATM)
-      IMPLICIT NONE
+      INCLUDE 'SIZES'
+      COMMON /PERMUTE /PR,PRT
+      INTEGER PR(NUMATM),PRT(NUMATM)
       DOUBLE PRECISION DEL(3),SC,R,XYZ(3,*)
       INTEGER NATM,ATMS(*)
-      INTEGER I,J,II
+      INTEGER I,J,II,JJ
 **********************************************
 *       SETS THE DISTANCE BETWEEN TWO ATOMS TO THE SPECIFIED LENGTH
 *       THE SECOND ATOM WILL MOVE ALONG THE SEPARATION VECTOR
@@ -60,18 +76,21 @@
       DEL(2)=SC*(XYZ(2,J)-XYZ(2,I))
       DEL(3)=SC*(XYZ(3,J)-XYZ(3,I))
       DO 10 II=1,NATM
-        XYZ(1,ATMS(II))=XYZ(1,ATMS(II))+DEL(1)
-        XYZ(2,ATMS(II))=XYZ(2,ATMS(II))+DEL(2)
-        XYZ(3,ATMS(II))=XYZ(3,ATMS(II))+DEL(3)
+        JJ=PRT(ATMS(II))
+        XYZ(1,JJ)=XYZ(1,JJ)+DEL(1)
+        XYZ(2,JJ)=XYZ(2,JJ)+DEL(2)
+        XYZ(3,JJ)=XYZ(3,JJ)+DEL(3)
    10  CONTINUE
       RETURN
       END
       SUBROUTINE SETBANG(XYZ,I,J,K,ANGL,ATMS,NATM)
       INCLUDE 'SIZES'
+      COMMON /PERMUTE /PR,PRT
+      INTEGER PR(NUMATM),PRT(NUMATM)
       DOUBLE PRECISION XP(3),YP(3),ZP(3),OP(3),JII(3),R,LN,C,S,DEL,
      1 ANGL,XYZ(3,NUMATM),FOO1, FOO2
       INTEGER NATM,ATMS(*)
-      INTEGER I,J,K,II
+      INTEGER I,J,K,II,JJ
 **********************************************
 *       SETS THE BOND ANGLE BETWEEN THREE ATOMS
 *       THIS WILL FAIL IF THE ATOMS ARE QUASI-COLINEAR
@@ -108,10 +127,11 @@
       ZP(2)=ZP(2)/LN
       ZP(3)=ZP(3)/LN
       DO 10 II=1,NATM
+        JJ=PRT(ATMS(II))
         IF(ATMS(II).NE.I)THEN
-            JII(1)=XYZ(1,ATMS(II))-XYZ(1,J)
-            JII(2)=XYZ(2,ATMS(II))-XYZ(2,J)
-            JII(3)=XYZ(3,ATMS(II))-XYZ(3,J)
+            JII(1)=XYZ(1,JJ)-XYZ(1,J)
+            JII(2)=XYZ(2,JJ)-XYZ(2,J)
+            JII(3)=XYZ(3,JJ)-XYZ(3,J)
             LN=SQRT(JII(1)**2+JII(2)**2+JII(3)**2)
             LN=ATAN2(DOT_PRODUCT(JII,YP)/LN,DOT_PRODUCT(JII,XP)/LN)
             LN=LN+DEL
@@ -121,21 +141,23 @@
             OP(1)=XYZ(1,J)+ZP(1)*LN
             OP(2)=XYZ(2,J)+ZP(2)*LN
             OP(3)=XYZ(3,J)+ZP(3)*LN
-            R=SQRT((XYZ(1,ATMS(II))-OP(1))**2+
-     2   (XYZ(2,ATMS(II))-OP(2))**2+
-     3   (XYZ(3,ATMS(II))-OP(3))**2)
-            XYZ(1,ATMS(II))=OP(1)+R*(C*XP(1)+S*YP(1))
-            XYZ(2,ATMS(II))=OP(2)+R*(C*XP(2)+S*YP(2))
-            XYZ(3,ATMS(II))=OP(3)+R*(C*XP(3)+S*YP(3))
+            R=SQRT((XYZ(1,JJ)-OP(1))**2+
+     2   (XYZ(2,JJ)-OP(2))**2+
+     3   (XYZ(3,JJ)-OP(3))**2)
+            XYZ(1,JJ)=OP(1)+R*(C*XP(1)+S*YP(1))
+            XYZ(2,JJ)=OP(2)+R*(C*XP(2)+S*YP(2))
+            XYZ(3,JJ)=OP(3)+R*(C*XP(3)+S*YP(3))
         ENDIF
    10  CONTINUE
       RETURN
       END
       SUBROUTINE SETDIHD(XYZ,I,J,K,L,ANGL,ATMS,NATM)
       INCLUDE 'SIZES'
+      COMMON /PERMUTE /PR,PRT
+      INTEGER PR(NUMATM),PRT(NUMATM)
       DOUBLE PRECISION OP(3),XP(3),YP(3),ZP(3),JII(3),R,LN,C,S,DEL
      1 ,ANGL,XYZ(3,NUMATM)
-      INTEGER NATM, ATMS(*),I,J,K,L,II
+      INTEGER NATM, ATMS(*),I,J,K,L,II,JJ
 **********************************************************************
 *       SETS THE DIHERDAL ANGLE OF THE IJK PLANE WRT JKL TO THAT SPECIFIED
 *       WILL FAIL IF THE PLANES ARE DEFINED BY A QUASI-COLINEAR SET
@@ -166,22 +188,109 @@
       CALL DIHED(XYZ,I,J,K,L,DEL)
       DEL=ANGL-DEL
       DO 10 II=1,NATM
-        JII(1)=XYZ(1,ATMS(II))-XYZ(1,J)
-        JII(2)=XYZ(2,ATMS(II))-XYZ(2,J)
-        JII(3)=XYZ(3,ATMS(II))-XYZ(3,J)
+        JJ=PRT(ATMS(II))
+        JII(1)=XYZ(1,JJ)-XYZ(1,J)
+        JII(2)=XYZ(2,JJ)-XYZ(2,J)
+        JII(3)=XYZ(3,JJ)-XYZ(3,J)
         LN=DOT_PRODUCT(JII,ZP)
         OP(1)=XYZ(1,J)+ZP(1)*LN
         OP(2)=XYZ(2,J)+ZP(2)*LN
         OP(3)=XYZ(3,J)+ZP(3)*LN
-        R=SQRT((OP(1)-XYZ(1,ATMS(II)))**2+(OP(2)-XYZ(2,ATMS(II)))**2
-     1   +(OP(3)-XYZ(3,ATMS(II)))**2)
-        CALL DIHED(XYZ,I,J,K,ATMS(II),LN)
+        R=SQRT((OP(1)-XYZ(1,JJ))**2+(OP(2)-XYZ(2,JJ))**2
+     1   +(OP(3)-XYZ(3,JJ))**2)
+        CALL DIHED(XYZ,I,J,K,JJ,LN)
         LN=LN+DEL
         C=COS(LN)
         S=SIN(LN)
-        XYZ(1,ATMS(II))=OP(1)+R*(C*XP(1)+S*YP(1))
-        XYZ(2,ATMS(II))=OP(2)+R*(C*XP(2)+S*YP(2))
-        XYZ(3,ATMS(II))=OP(3)+R*(C*XP(3)+S*YP(3))
+        XYZ(1,JJ)=OP(1)+R*(C*XP(1)+S*YP(1))
+        XYZ(2,JJ)=OP(2)+R*(C*XP(2)+S*YP(2))
+        XYZ(3,JJ)=OP(3)+R*(C*XP(3)+S*YP(3))
    10  CONTINUE
       RETURN
       END
+
+      SUBROUTINE SETLINPEN(XYZ)
+      INCLUDE 'SIZES'
+      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF
+      INTEGER I,J,K,PI,PJ,PK
+      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN
+      DATA KF /100/
+      IF(PI.EQ.0)RETURN
+
+      POFF(:)=XYZ(:,PI)
+      PAXIS(1)=XYZ(1,PJ)-POFF(1)
+      PAXIS(2)=XYZ(2,PJ)-POFF(2)
+      PAXIS(3)=XYZ(3,PJ)-POFF(3)
+      LN=SQRT(PAXIS(1)**2+PAXIS(2)**2+PAXIS(3)**2)
+      PAXIS(1)=PAXIS(1)/LN
+      PAXIS(2)=PAXIS(2)/LN
+      PAXIS(3)=PAXIS(3)/LN
+      END
+
+      SUBROUTINE PENENERGY(XYZ,ESCF)
+      INCLUDE 'SIZES'
+      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF
+      COMMON /COORD /
+      INTEGER I,J,PI,PJ,PK
+      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,SEP(3)
+      IF(PI.EQ.0)RETURN
+      J=1
+   10 SELECT CASE (J)
+      CASE (1)
+        I=PI
+      CASE (2)
+        I=PJ
+      CASE (3)
+        I=PK
+      END SELECT
+      IF(J.LT.4)THEN
+          J=J+1
+          SEP(1)=POFF(1)-XYZ(1,I)
+          SEP(2)=POFF(2)-XYZ(2,I)
+          SEP(3)=POFF(3)-XYZ(3,I)
+          LN=DOT_PRODUCT(PAXIS,SEP)
+          SEP(1)=POFF(1)+LN*PAXIS(1)
+          SEP(2)=POFF(2)+LN*PAXIS(2)
+          SEP(3)=POFF(3)+LN*PAXIS(3)
+          SEP(1)=XYZ(1,I)-SEP(1)
+          SEP(2)=XYZ(2,I)-SEP(2)
+          SEP(3)=XYZ(3,I)-SEP(3)
+          LN=SEP(1)**2+SEP(2)**2+SEP(3)**2
+          ESCF=ESCF+LN*KF
+          GOTO 10
+      ENDIF
+      END
+
+      SUBROUTINE PENFORCE(XYZ,DXYZ)
+      INCLUDE 'SIZES'
+      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF
+      INTEGER I,J,PI,PJ,PK
+      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,SEP(3)
+      IF(PI.EQ.0)RETURN
+      J=1
+   10 SELECT CASE (J)
+      CASE (1)
+        I=PI
+      CASE (2)
+        I=PJ
+      CASE (3)
+        I=PK
+      END SELECT
+      IF(J.LT.4)THEN
+          J=J+1
+          SEP(1)=POFF(1)-XYZ(1,I)
+          SEP(2)=POFF(2)-XYZ(2,I)
+          SEP(3)=POFF(3)-XYZ(3,I)
+          LN=DOT_PRODUCT(PAXIS,SEP)
+          SEP(1)=POFF(1)+LN*PAXIS(1)
+          SEP(2)=POFF(2)+LN*PAXIS(2)
+          SEP(3)=POFF(3)+LN*PAXIS(3)
+          SEP(1)=XYZ(1,I)-SEP(1)
+          SEP(2)=XYZ(2,I)-SEP(2)
+          SEP(3)=XYZ(3,I)-SEP(3)
+          LN=SQRT(SEP(1)**2+SEP(2)**2+SEP(3)**2)
+          ESCF=ESCF+2*LN*KF
+          GOTO 10
+      ENDIF
+      END
+

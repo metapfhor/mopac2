@@ -71,10 +71,19 @@ C      IF(LINE.EQ.' ') GOTO 130
 C       Added
       IF(LINE.EQ.' ')THEN
        IF(INDEX(KEYWRD,'ALTCON').EQ.0)THEN
-       GOTO 130
+        GOTO 130
        ELSE
-       CALL RALTCON(IREAD,LOPT)
-       GOTO 130
+        CALL RALTCON(IREAD,LOPT)
+        LOPT(1,1)=0
+        LOPT(2,1)=0
+        LOPT(3,1)=0
+!        LOPT(1,2)=MIN(LOPT(1,2),1)
+        LOPT(2,2)=0
+        LOPT(3,2)=0
+!        LOPT(1,3)=MIN(LOPT(1,3),1)
+!        LOPT(2,3)=MIN(LOPT(2,3),1)
+        LOPT(3,3)=0
+        GOTO 130
        ENDIF
       ENDIF
 C       End Laurent
@@ -225,23 +234,23 @@ C       End Laurent
           LOPT(2,NATOMS)   =READA(LINE,ISTART(5))
           LOPT(3,NATOMS)   =READA(LINE,ISTART(7))
          ELSE
-            IF(NATOMS.EQ.1)THEN
-                LOPT(1,NATOMS)=0
-                LOPT(2,NATOMS)=0
-                LOPT(3,NATOMS)=0
-            ELSEIF(NATOMS.EQ.2)THEN
-                LOPT(1,NATOMS)=1
-                LOPT(2,NATOMS)=0
-                LOPT(3,NATOMS)=0
-            ELSEIF(NATOMS.EQ.3)THEN
-                LOPT(1,NATOMS)=1
-                LOPT(2,NATOMS)=1
-                LOPT(3,NATOMS)=0
-            ELSE
+!            IF(NATOMS.EQ.1)THEN
+!                LOPT(1,NATOMS)=0
+!                LOPT(2,NATOMS)=0
+!                LOPT(3,NATOMS)=0
+!            ELSEIF(NATOMS.EQ.2)THEN
+!                LOPT(1,NATOMS)=1
+!                LOPT(2,NATOMS)=0
+!                LOPT(3,NATOMS)=0
+!            ELSEIF(NATOMS.EQ.3)THEN
+!                LOPT(1,NATOMS)=1
+!                LOPT(2,NATOMS)=1
+!                LOPT(3,NATOMS)=0
+!            ELSE
                 LOPT(1,NATOMS)=1
                 LOPT(2,NATOMS)=1
                 LOPT(3,NATOMS)=1
-            ENDIF
+!            ENDIF
 
          ENDIF
          DO 90 I=3,7,2

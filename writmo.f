@@ -50,10 +50,11 @@ C     PATAS
       COMMON /FINAL/ GVW,GVWS,ELC1,EC1
 C     PATAS
 C       Laurent Modification
-      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT(3,3)
+      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT
       COMMON /ENERGY / EQLBR
       COMMON /PERMUTE / PR,PRT
       INTEGER PR(NUMATM),PRT(NUMATM)
+      DOUBLE PRECISION ATOT(3,3)
 C       Laurent end
 ************************************************************************
 *

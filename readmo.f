@@ -84,7 +84,7 @@ C     PATAS
       COMMON /FACTOR/ FACTOR
       COMMON /CLASES/ ICLASS(NUMATM)
 C       Laurent Modification
-      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT(3,3)
+      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT
 
       COMMON /PERMUTE /PR,PRT
 
@@ -98,6 +98,7 @@ C* SHIHAO'S MODIFICATION END
 C**********************************************************************
 C       LAURENT MODIFICATION
       INTEGER PR(NUMATM),PRT(NUMATM)
+      DOUBLE PRECISION ATOT(3,3)
 C       END LAURENT
 C     PATAS
 

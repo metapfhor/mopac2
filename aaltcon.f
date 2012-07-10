@@ -24,7 +24,7 @@
       B=ROTB
       D=ROTD
       I=0
-      CALL PERATMS(XYZ)
+
 
 
    10 IF((I+5).LE.GETLENGTH(TRLB))THEN
@@ -54,8 +54,6 @@
       I=I+7
       GOTO 50
       END IF
-
-      CALL SETLINPEN(XYZ)
       END
 
       SUBROUTINE SETRADI(XYZ,I,J,R,ATMS,NATM)
@@ -211,29 +209,37 @@
 
       SUBROUTINE SETLINPEN(XYZ)
       INCLUDE 'SIZES'
-      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF
+      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF,PENRGY,PDIST,POW
+      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT
       INTEGER I,J,K,PI,PJ,PK
-      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN
-      DATA KF /100/
+      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,KF,ATOT(3,3),
+     1                   TMP(3),XHAT,YHAT,ZHAT,OFF,PENRGY,PDIST,POW
+
       IF(PI.EQ.0)RETURN
 
-      POFF(:)=XYZ(:,PI)
+      POFF(1:3)=XYZ(1:3,PI)
       PAXIS(1)=XYZ(1,PJ)-POFF(1)
       PAXIS(2)=XYZ(2,PJ)-POFF(2)
       PAXIS(3)=XYZ(3,PJ)-POFF(3)
+      POFF=MATMUL(TRANSPOSE(ATOT),POFF)
       LN=SQRT(PAXIS(1)**2+PAXIS(2)**2+PAXIS(3)**2)
       PAXIS(1)=PAXIS(1)/LN
       PAXIS(2)=PAXIS(2)/LN
       PAXIS(3)=PAXIS(3)/LN
+
+
+      PAXIS=MATMUL(TRANSPOSE(ATOT),PAXIS)
       END
 
       SUBROUTINE PENENERGY(XYZ,ESCF)
       INCLUDE 'SIZES'
-      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF
-      COMMON /COORD /
+      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF,PENRGY,PDIST,POW
       INTEGER I,J,PI,PJ,PK
-      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,SEP(3)
+      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,9*NUMATM),LN,SEP(3),
+     1 ESCF,KF,PENRGY,PDIST
+      PENERGY=0
       IF(PI.EQ.0)RETURN
+
       J=1
    10 SELECT CASE (J)
       CASE (1)
@@ -245,9 +251,9 @@
       END SELECT
       IF(J.LT.4)THEN
           J=J+1
-          SEP(1)=POFF(1)-XYZ(1,I)
-          SEP(2)=POFF(2)-XYZ(2,I)
-          SEP(3)=POFF(3)-XYZ(3,I)
+          SEP(1)=XYZ(1,I)-POFF(1)
+          SEP(2)=XYZ(2,I)-POFF(2)
+          SEP(3)=XYZ(3,I)-POFF(3)
           LN=DOT_PRODUCT(PAXIS,SEP)
           SEP(1)=POFF(1)+LN*PAXIS(1)
           SEP(2)=POFF(2)+LN*PAXIS(2)
@@ -255,17 +261,30 @@
           SEP(1)=XYZ(1,I)-SEP(1)
           SEP(2)=XYZ(2,I)-SEP(2)
           SEP(3)=XYZ(3,I)-SEP(3)
-          LN=SEP(1)**2+SEP(2)**2+SEP(3)**2
-          ESCF=ESCF+LN*KF
+          LN=(SEP(1)**2+SEP(2)**2+SEP(3)**2)**((POW+1.D0)/2.D0)
+          PENRGY=PENRGY+(LN*KF/(POW+1.D0))
           GOTO 10
       ENDIF
+        ESCF=ESCF+PENRGY
       END
 
       SUBROUTINE PENFORCE(XYZ,DXYZ)
       INCLUDE 'SIZES'
-      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF
-      INTEGER I,J,PI,PJ,PK
-      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,SEP(3)
+      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF,PENRGY,PDIST,POW
+      COMMON /GEOKST/ NATOMS,LABELS(NUMATM),
+     1NA(NUMATM),NB(NUMATM),NC(NUMATM)
+      COMMON /GRADNT/ GRAD(MAXPAR),GNORM
+      INTEGER I,J,PI,PJ,PK,NA,NB,NC
+      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,SEP(3),
+     1                   DXYZ(3,9*NUMATM),KF,PENRGY,PDIST,POW,GRAD,
+     2                   GNORM
+!      IF(PDIST.NE.0)THEN
+!        POW=-REAL(INT(DLOG10(PDIST)))+1.D0
+!        POW=MAX(1.D0,POW)
+!      ELSE
+!        POW=1.D0
+!      ENDIF
+      PDIST=0
       IF(PI.EQ.0)RETURN
       J=1
    10 SELECT CASE (J)
@@ -278,9 +297,9 @@
       END SELECT
       IF(J.LT.4)THEN
           J=J+1
-          SEP(1)=POFF(1)-XYZ(1,I)
-          SEP(2)=POFF(2)-XYZ(2,I)
-          SEP(3)=POFF(3)-XYZ(3,I)
+          SEP(1)=XYZ(1,I)-POFF(1)
+          SEP(2)=XYZ(2,I)-POFF(2)
+          SEP(3)=XYZ(3,I)-POFF(3)
           LN=DOT_PRODUCT(PAXIS,SEP)
           SEP(1)=POFF(1)+LN*PAXIS(1)
           SEP(2)=POFF(2)+LN*PAXIS(2)
@@ -288,9 +307,23 @@
           SEP(1)=XYZ(1,I)-SEP(1)
           SEP(2)=XYZ(2,I)-SEP(2)
           SEP(3)=XYZ(3,I)-SEP(3)
-          LN=SQRT(SEP(1)**2+SEP(2)**2+SEP(3)**2)
-          ESCF=ESCF+2*LN*KF
+
+          LN=DOT_PRODUCT(PAXIS,DXYZ(:,I))
+          DXYZ(1,I)=LN*PAXIS(1)
+          DXYZ(2,I)=LN*PAXIS(2)
+          DXYZ(3,I)=LN*PAXIS(3)
+          LN=SEP(1)**2+SEP(2)**2+SEP(3)**2
+          PDIST=PDIST+LN
+          IF(ABS(LN).LT.1.D-16)THEN
+            KF=SQRT(DOT_PRODUCT(DXYZ(:,I),DXYZ(:,I))/3.D0)
+          ELSE
+            KF=0.D0
+          ENDIF
+          DXYZ(1,I)=DXYZ(1,I)+KF*SEP(1)*(ABS(SEP(1))**(POW-1.D0))
+          DXYZ(2,I)=DXYZ(2,I)+KF*SEP(2)*(ABS(SEP(2))**(POW-1.D0))
+          DXYZ(3,I)=DXYZ(3,I)+KF*SEP(3)*(ABS(SEP(3))**(POW-1.D0))
           GOTO 10
       ENDIF
+      PDIST=SQRT(PDIST/3.D0)
       END
 

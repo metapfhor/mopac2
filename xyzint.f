@@ -28,14 +28,14 @@
       COMMON /GEOOK/ IGEOOK
       COMMON /NUMCAL/ NUMCAL
 C             Laurent Modification: added
-      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT(3,3)
+      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT
       COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
      1                  VALS, NVALS
       COMMON /PERMUTE /PR,PRT
       INTEGER PR(NUMATM),PRT(NUMATM)
       INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS
       LOGICAL APPLIED
-      DOUBLE PRECISION VALS(3*NUMATM)
+      DOUBLE PRECISION VALS(3*NUMATM),ATOT(3,3)
       DOUBlE PRECISION DX, DY, DZ
      1  XYZINIT(3,NUMATM)
 
@@ -46,10 +46,12 @@ C       Laurent End
       IGEOOK=99
 
 C       Laurent Modification: Recenter on the first atom
+
+
       IF(INDEX(KEYWRD,'ALTCON').NE.0.AND..NOT.APPLIED.AND.TRLB.NE.0)THEN
-        CALL AALTCON(XYZ,DEGREE)
-        APPLIED=.TRUE.
+        CALL PERATMS(XYZ)
       ENDIF
+
 
       DX=XYZ(1,1)
       DY=XYZ(2,1)
@@ -61,13 +63,18 @@ C       Laurent Modification: Recenter on the first atom
 !      OFF(2)=OFF(2)+ATOT(1,2)*DX+ATOT(2,2)*DY+ATOT(3,2)*DZ
 !      OFF(3)=OFF(3)+ATOT(1,3)*DX+ATOT(2,3)*DY+ATOT(3,3)*DZ
 
+
+
+
       DO 40 I=1,NUMAT
         XYZ(1,I)=XYZ(1,I)-DX
         XYZ(2,I)=XYZ(2,I)-DY
         XYZ(3,I)=XYZ(3,I)-DZ
    40 CONTINUE
 
-
+      IF(INDEX(KEYWRD,'ALTCON').NE.0.AND..NOT.APPLIED.AND.TRLB.NE.0)THEN
+        CALL AALTCON(XYZ,DEGREE)
+      ENDIF
 C       Laurent End
       IF(.NOT.(ICALCN.NE.NUMCAL).AND.NA(2).EQ.-1 .OR. NA(2).EQ.-2)THEN
          NA(2)=1
@@ -186,13 +193,17 @@ C
 *
 ***********************************************************************
 C       Laurent
-      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT(3,3)
-      COMMON /CNSTR / ICONXN,IVAL, APPLIED, INFINT
+      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT
+      COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
+     1                  VALS, NVALS
       COMMON /PERMUTE /PR,PRT
       INTEGER PR(NUMATM),PRT(NUMATM)
       INTEGER  ICONXN(6,NUMATM)
+      LOGICAL APPLIED
       DOUBLE PRECISION XHP(3),YHP(3),ZHP(3),XHT(3),YHT(3),ZHT(3),LNP
-     1 ,ATMP(3,3),XY,XZ,YZ,ZZ
+     1 ,ATMP(3,3),XY,XZ,YZ,ZZ,ATOT(3,3)
+      COMMON /KEYWRD/ KEYWRD
+      CHARACTER KEYWRD*241
 C       /Laurent
 
 C       Laurent: This loop is all about defining NC(I), in order to give good bond angles
@@ -291,6 +302,14 @@ C       Update our axes
       ATMP(:,3)=ZHP
 
       ATOT = MATMUL(ATMP,ATOT)
+
+
+      IF(INDEX(KEYWRD,'ALTCON').NE.0.
+     1 AND..NOT.APPLIED.AND.TRLB.NE.0)THEN
+        CALL SETLINPEN(XYZ)
+        APPLIED=.TRUE.
+      ENDIF
+
 C       Laurent End
 
       GEO(1,1)=0.D0

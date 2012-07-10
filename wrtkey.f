@@ -497,11 +497,17 @@ C     PATAS
          ELSE
             WRITE(6,'(///10X,''UNRECOGNIZED KEY-WORDS: ('',A,'')'')')
      1ALLKEY(:J)
-            WRITE(6,'(///10X,''CALCULATION STOPPED TO AVOID WASTING TIME
-     1.'')')
-            WRITE(6,'(///10X,''IF THESE ARE DEBUG KEYWORDS, ADD THE KEYW
-     1ORD "DEBUG"'')')
-            STOP
+***************************************************************************
+C       LAURENT MODIFICATION: REMOVED AS THIS IS INCRESIBLY ANNOYING TO
+C                             DEAL WITH EACH TIME A KEYWORD IS ADDED!
+!
+!            WRITE(6,'(///10X,''CALCULATION STOPPED TO AVOID WASTING TIME
+!     1.'')')
+!            WRITE(6,'(///10X,''IF THESE ARE DEBUG KEYWORDS, ADD THE KEYW
+!     1ORD "DEBUG"'')')
+!            STOP
+C       END LAURENT
+***************************************************************************
          ENDIF
       ENDIF
       RETURN

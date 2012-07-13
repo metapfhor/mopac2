@@ -302,6 +302,7 @@ C       Update our axes
         END DO
 
         CALL GMETRY(GEO,COORD)
+
         DO I=1,NUMATM
             GEO(2,I)=GEO(2,I)*DEGREE
             GEO(3,I)=GEO(3,I)*DEGREE

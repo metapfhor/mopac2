@@ -54,6 +54,8 @@
       I=I+7
       GOTO 50
       END IF
+
+
       END
 
       SUBROUTINE SETRADI(XYZ,I,J,R,ATMS,NATM)
@@ -91,7 +93,7 @@
       INTEGER I,J,K,II,JJ
 **********************************************
 *       SETS THE BOND ANGLE BETWEEN THREE ATOMS
-*       THIS WILL FAIL IF THE ATOMS ARE QUASI-COLINEAR
+*       THIS MAY FAIL IF THE ATOMS ARE QUASI-COLINEAR
 **********************************************
       YP(1)=XYZ(1,K)-XYZ(1,J)
       YP(2)=XYZ(2,K)-XYZ(2,J)
@@ -112,6 +114,12 @@
       YP(2)=YP(2)-LN*XP(2)
       YP(3)=YP(3)-LN*XP(3)
       LN=SQRT(YP(1)**2+YP(2)**2+YP(3)**2)
+      IF(LN.LT.1.D-4)THEN
+      YP(1)=-XP(2)
+      YP(2)=XP(1)
+      YP(3)=0
+      LN=SQRT(YP(1)**2+YP(2)**2+YP(3)**2)
+      ENDIF
       YP(1)=YP(1)/LN
       YP(2)=YP(2)/LN
       YP(3)=YP(3)/LN
@@ -238,7 +246,7 @@
       DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,SEP(3),
      1 ESCF,KF,PENRGY,PDIST,POW
 
-      PENERGY=0
+      PENRGY=0
       IF(PI.EQ.0)RETURN
 
       J=1
@@ -262,12 +270,12 @@
           SEP(1)=XYZ(1,I)-SEP(1)
           SEP(2)=XYZ(2,I)-SEP(2)
           SEP(3)=XYZ(3,I)-SEP(3)
-          LN=(SEP(1)**2+SEP(2)**2+SEP(3)**2)**((POW+1.D0)/2.D0)
+          LN=((SEP(1)**2+SEP(2)**2+SEP(3)**2)**((POW+1.D0)/2.D0))
           PENRGY=PENRGY+(LN*KF/(POW+1.D0))
           GOTO 10
       ENDIF
         ESCF=ESCF+PENRGY
-        CALL SETLINPEN(XYZ)
+
       END
 
       SUBROUTINE PENFORCE(XYZ,DXYZ)
@@ -313,20 +321,20 @@
           SEP(3)=XYZ(3,I)-SEP(3)
 
           LN=DOT_PRODUCT(PAXIS,DXYZ(:,I))
-          DXYZ(1,I)=LN*PAXIS(1)
-          DXYZ(2,I)=LN*PAXIS(2)
-          DXYZ(3,I)=LN*PAXIS(3)
+!          DXYZ(1,I)=LN*PAXIS(1)
+!          DXYZ(2,I)=LN*PAXIS(2)
+!          DXYZ(3,I)=LN*PAXIS(3)
           LN=SEP(1)**2+SEP(2)**2+SEP(3)**2
           PDIST=PDIST+LN
-          DXYZ(1,I)=DXYZ(1,I)-KF*SEP(1)*(ABS(SEP(1))**(POW-1.D0))
-          DXYZ(2,I)=DXYZ(2,I)-KF*SEP(2)*(ABS(SEP(2))**(POW-1.D0))
-          DXYZ(3,I)=DXYZ(3,I)-KF*SEP(3)*(ABS(SEP(3))**(POW-1.D0))
+          DXYZ(1,I)=DXYZ(1,I)+KF*SEP(1)*(ABS(SEP(1))**(POW-1.D0))
+          DXYZ(2,I)=DXYZ(2,I)+KF*SEP(2)*(ABS(SEP(2))**(POW-1.D0))
+          DXYZ(3,I)=DXYZ(3,I)+KF*SEP(3)*(ABS(SEP(3))**(POW-1.D0))
 !          DXYZ(1,I)=0
 !          DXYZ(2,I)=0
 !          DXYZ(3,I)=0
           GOTO 10
       ENDIF
       PDIST=SQRT(PDIST/3.D0)
-      CALL SETLINPEN(XYZ)
+!      CALL SETLINPEN(XYZ)
       END
 

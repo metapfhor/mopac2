@@ -690,7 +690,7 @@ C       THINGS BECOME SOMEWHAT HECTIC IF WE ARE DEALING WITH THE FIRST TWO ATOMS
       DOUBLE PRECISION :: READN
       DOUBLE PRECISION TMPC(8)
       INTEGER II,JJ,CONX(8),MINDEP,TMPDEP,TMPIND,
-     1         NEXTDEP,THREE
+     1         NEXTDEP,TWO
       INTEGER TATMS
       DIMENSION ISTART(MAXCHAR/2), LOPT(3,NUMATM)
       CHARACTER SPACE*1,COMMA*1,LSQB*1,RSQB*1,LCRB*1,RCRB*1
@@ -869,52 +869,74 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
       END DO
       CALL CALCPRT
 
-!      IF(PI.NE.0)THEN
-!        MOVE=.TRUE.
-!        IF(PI.NE.1)THEN
-!
-!            DO I=PI-1,1,-1
-!                MOVE=DEP(I).EQ.O.OR.NINARR(DEP(I),PRT(PI))
-!                IF(.NOT.MOVE)THEN
-!                    EXIT
-!                ENDIF
-!            ENDDO
-!            IF(MOVE)THEN
-!            TMPDEP=DEP(PI)
-!
-!            DO I=PI,2,-1
-!                PR(I)=PR(I-1)
-!                DEP(I)=DEP(I-1)
-!            ENDDO
-!            DEP(1)=TMPDEP
-!            PR(1)=PI
-!            CALL CALCPRT()
-!            ENDIF
-!         ENDIF
+      IF(PI.NE.0)THEN
+        MOVE=.TRUE.
+        IF(PI.NE.1)THEN
+
+            DO I=PI-1,1,-1
+                MOVE=DEP(I).EQ.O.OR.NINARR(DEP(I),PRT(PI))
+                IF(.NOT.MOVE)THEN
+                    EXIT
+                ENDIF
+            ENDDO
+            IF(MOVE)THEN
+            TMPDEP=DEP(PI)
+
+            DO I=PI,2,-1
+                PR(I)=PR(I-1)
+                DEP(I)=DEP(I-1)
+            ENDDO
+            DEP(1)=TMPDEP
+            PR(1)=PI
+            CALL CALCPRT()
+            ENDIF
+            PI=PRT(PI)
+         ENDIF
 !         IF(MOVE)THEN
-!            THREE=MIN(PJ,PK)
-!            DO I=THREE-1,3,-1
-!                MOVE=DEP(I).EQ.O.OR.NINARR(DEP(I),PRT(THREE))
+!            TWO=MIN(PRT(PJ),PRT(PK))
+!            DO I=TWO-1,2,-1
+!                MOVE=DEP(I).EQ.O.OR.NINARR(DEP(I),PRT(TWO))
 !                IF(.NOT.MOVE)THEN
 !                    EXIT
 !                ENDIF
 !            ENDDO
 !            IF(MOVE)THEN
-!            TMPDEP=DEP(THREE)
-!            DO I=THREE,4,-1
-!                PR(I)=PR(I-1)
-!                DEP(I)=DEP(I-1)
-!            ENDDO
-!            DEP(3)=TMPDEP
-!            PR(3)=THREE
-!            CALL CALCPRT()
+!                TMPDEP=DEP(TWO)
+!                TMPIND=PR(TWO)
+!                DO I=TWO,3,-1
+!                    PR(I)=PR(I-1)
+!                    DEP(I)=DEP(I-1)
+!                ENDDO
+!                DEP(2)=TMPDEP
+!                PR(2)=TMPIND
+!                CALL CALCPRT()
+!                ENDIF
+!                IF(MOVE)THEN
+!                    THREE=MAX(PRT(PJ),PRT(PK))
+!                    DO I=THREE-1,3,-1
+!                        MOVE=DEP(I).EQ.O.OR.NINARR(DEP(I),PRT(THREE))
+!                        IF(.NOT.MOVE)THEN
+!                            EXIT
+!                        ENDIF
+!                    ENDDO
+!                    IF(MOVE)THEN
+!                    TMPDEP=DEP(THREE)
+!                    TMPIND=PR(THREE)
+!                    DO I=THREE,4,-1
+!                        PR(I)=PR(I-1)
+!                        DEP(I)=DEP(I-1)
+!                    ENDDO
+!                    DEP(3)=TMPDEP
+!                    PR(3)=TMPIND
+!                    CALL CALCPRT()
+!                ENDIF
 !            ENDIF
-!      ENDIF
-!
-!        PI=PRT(PI)
-!        PJ=PRT(PJ)
-!        PK=PRT(PK)
-!      ENDIF
+            TMPDEP=PI
+            PI=0
+            CALL INITPEN(PRT(TMPDEP),PRT(PJ),PRT(PK))
+!         ENDIF
+      ENDIF
+
 
 
       RETURN

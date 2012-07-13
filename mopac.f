@@ -49,11 +49,13 @@ C       Laurent Modification
 C       Added: unit vectors to be transformed as the axes are rotated
 C       as well as a translation vector in order to return to the input coords
 
-      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT
+      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT(3,3)
       COMMON /ARRS / DESC
+      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF,PENRGY,PDIST,POW
+      INTEGER PI,PJ,PK
+      DOUBLE PRECISION PAXIS(3),POFF(3),KF,PENRGY,PDIST,POW
       INTEGER DESC
       DATA DESC /2/
-      DOUBLE PRECISION ATOT(3,3)
 C       end of Laurent Modification
 
 C COSMO change
@@ -164,9 +166,10 @@ C
          ATHEAT=ATHEAT-EAT*23.061D0
       ENDIF
 C       LAURENT MODIFICATION
-      CALL COMPFG(XPARAM,.TRUE.,EINIT,.TRUE.,GRAD,.FALSE.)
+      CALL COMPFG(XPARAM,.TRUE.,EINIT,.TRUE.,GRAD,.TRUE.)
       WRITE(6,'(//''   INITIAL HEAT OF FORMATION =   '',F17.5,/'''')')
-     1 EINIT
+     1 EINIT-PENRGY
+      CALL GMETRY(GEO,COORD)
 C       END LAURENT
 
       IF (INDEX(KEYWRD,'RESTART').EQ.0)THEN
@@ -263,7 +266,9 @@ C#      CALL TIMER('BEFORE FLEPO')
 C COSMO change 1/9/92 SJC
       UPDA = .FALSE.
 C end of COSMO change
+
       CALL FLEPO(XPARAM, NVAR, ESCF)
+
    40 LAST=1
       IF(IFLEPO.GE.0)CALL WRITMO(TIME0, ESCF)
       IF(INDEX(KEYWRD,'POLAR') .NE. 0) THEN
@@ -296,7 +301,9 @@ C
   200 CALL LDIMA
       CALL RFIELD
       ITERQ=ITERQ+1
+
       CALL FLEPO(XPARAM, NVAR, ESCF)
+
       CALL WRITMO(TIME0, ESCF)
       IF (MFLAG.LT.3) GO TO 200
 C

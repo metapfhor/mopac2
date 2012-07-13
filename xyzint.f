@@ -50,6 +50,7 @@ C       Laurent Modification: Recenter on the first atom
 
       IF(INDEX(KEYWRD,'ALTCON').NE.0.AND..NOT.APPLIED.AND.TRLB.NE.0)THEN
         CALL PERATMS(XYZ)
+        CALL AALTCON(XYZ,DEGREE)
       ENDIF
 
 
@@ -71,10 +72,6 @@ C       Laurent Modification: Recenter on the first atom
         XYZ(2,I)=XYZ(2,I)-DY
         XYZ(3,I)=XYZ(3,I)-DZ
    40 CONTINUE
-
-      IF(INDEX(KEYWRD,'ALTCON').NE.0.AND..NOT.APPLIED.AND.TRLB.NE.0)THEN
-        CALL AALTCON(XYZ,DEGREE)
-      ENDIF
 C       Laurent End
       IF(.NOT.(ICALCN.NE.NUMCAL).AND.NA(2).EQ.-1 .OR. NA(2).EQ.-2)THEN
          NA(2)=1
@@ -116,24 +113,17 @@ C
             NA(I)=K
             IF(I.GT.2)THEN
                 IF(ICONXN(2,I).EQ.0)THEN
-                    IF(NA(K).LT.NA(I).AND.K.GE.2)THEN
-                        NB(I)=NA(K)
-                    ELSE
                         IF(NA(I).EQ.I-2)THEN
                             NB(I)=I-1
                         ELSE
                             NB(I)=I-2
                         ENDIF
-                    ENDIF
                 ELSE
-                    NB(I)=ICONXN(2,I)
+                        NB(I)=ICONXN(2,I)
                 ENDIF
             ENDIF
             IF(I.GT.3)THEN
                 IF(ICONXN(3,I).EQ.0)THEN
-                        IF(NB(K).LT.NB(I).AND.K.GE.3) THEN
-                            NC(I)=NB(K)
-                        ELSE
                             IF(NA(I).EQ.I-3.OR.NB(I).EQ.I-3)THEN
                                 IF(NA(I).EQ.I-3)THEN
                                     IF(NB(I).EQ.I-2)THEN
@@ -151,7 +141,6 @@ C
                             ELSE
                                 NC(I)=I-3
                             ENDIF
-                        ENDIF
                 ELSE
                     NC(I)=ICONXN(3,I)
                 ENDIF
@@ -174,7 +163,8 @@ C
       SUBROUTINE XYZGEO(XYZ,NUMAT,NA,NB,NC,DEGREE,GEO)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INCLUDE 'SIZES'
-      DIMENSION XYZ(3,*), NA(*), NB(*), NC(*), GEO(3,*)
+      DIMENSION XYZ(3,NUMATM), NA(NUMATM), NB(NUMATM), NC(NUMATM),
+     1  GEO(3,NUMATM)
 ***********************************************************************
 *
 *   XYZGEO CONVERTS COORDINATES FROM CARTESIAN TO INTERNAL.
@@ -200,6 +190,8 @@ C       Laurent
       INTEGER PR(NUMATM),PRT(NUMATM)
       INTEGER  ICONXN(6,NUMATM)
       LOGICAL APPLIED
+      COMMON /GENRAL/ COORD(3,NUMATM), COLD(3,NUMATM*3), GOLD(MAXPAR),
+     1 XPARAM(MAXPAR)
       DOUBLE PRECISION XHP(3),YHP(3),ZHP(3),XHT(3),YHT(3),ZHT(3),LNP
      1 ,ATMP(3,3),XY,XZ,YZ,ZZ,ATOT(3,3)
       COMMON /KEYWRD/ KEYWRD
@@ -303,10 +295,27 @@ C       Update our axes
 
       ATOT = MATMUL(ATMP,ATOT)
 
+      IF(.NOT.APPLIED)THEN
+        DO I=1,NUMATM
+            GEO(2,I)=GEO(2,I)/DEGREE
+            GEO(3,I)=GEO(3,I)/DEGREE
+        END DO
+
+        CALL GMETRY(GEO,COORD)
+        DO I=1,NUMATM
+            GEO(2,I)=GEO(2,I)*DEGREE
+            GEO(3,I)=GEO(3,I)*DEGREE
+        END DO
+      ENDIF
+
 
       IF(INDEX(KEYWRD,'ALTCON').NE.0.
      1 AND..NOT.APPLIED.AND.TRLB.NE.0)THEN
         CALL SETLINPEN(XYZ)
+        APPLIED=.TRUE.
+      ENDIF
+
+      IF(.NOT.APPLIED)THEN
         APPLIED=.TRUE.
       ENDIF
 

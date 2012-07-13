@@ -221,22 +221,23 @@
       PAXIS(1)=XYZ(1,PJ)-POFF(1)
       PAXIS(2)=XYZ(2,PJ)-POFF(2)
       PAXIS(3)=XYZ(3,PJ)-POFF(3)
-      POFF=MATMUL(TRANSPOSE(ATOT),POFF)
+
       LN=SQRT(PAXIS(1)**2+PAXIS(2)**2+PAXIS(3)**2)
       PAXIS(1)=PAXIS(1)/LN
       PAXIS(2)=PAXIS(2)/LN
       PAXIS(3)=PAXIS(3)/LN
 
 
-      PAXIS=MATMUL(TRANSPOSE(ATOT),PAXIS)
+
       END
 
       SUBROUTINE PENENERGY(XYZ,ESCF)
       INCLUDE 'SIZES'
       COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF,PENRGY,PDIST,POW
       INTEGER I,J,PI,PJ,PK
-      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,9*NUMATM),LN,SEP(3),
-     1 ESCF,KF,PENRGY,PDIST
+      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,SEP(3),
+     1 ESCF,KF,PENRGY,PDIST,POW
+
       PENERGY=0
       IF(PI.EQ.0)RETURN
 
@@ -266,6 +267,7 @@
           GOTO 10
       ENDIF
         ESCF=ESCF+PENRGY
+        CALL SETLINPEN(XYZ)
       END
 
       SUBROUTINE PENFORCE(XYZ,DXYZ)
@@ -284,8 +286,10 @@
 !      ELSE
 !        POW=1.D0
 !      ENDIF
+
       PDIST=0
       IF(PI.EQ.0)RETURN
+
       J=1
    10 SELECT CASE (J)
       CASE (1)
@@ -314,16 +318,15 @@
           DXYZ(3,I)=LN*PAXIS(3)
           LN=SEP(1)**2+SEP(2)**2+SEP(3)**2
           PDIST=PDIST+LN
-          IF(ABS(LN).LT.1.D-16)THEN
-            KF=SQRT(DOT_PRODUCT(DXYZ(:,I),DXYZ(:,I))/3.D0)
-          ELSE
-            KF=0.D0
-          ENDIF
-          DXYZ(1,I)=DXYZ(1,I)+KF*SEP(1)*(ABS(SEP(1))**(POW-1.D0))
-          DXYZ(2,I)=DXYZ(2,I)+KF*SEP(2)*(ABS(SEP(2))**(POW-1.D0))
-          DXYZ(3,I)=DXYZ(3,I)+KF*SEP(3)*(ABS(SEP(3))**(POW-1.D0))
+          DXYZ(1,I)=DXYZ(1,I)-KF*SEP(1)*(ABS(SEP(1))**(POW-1.D0))
+          DXYZ(2,I)=DXYZ(2,I)-KF*SEP(2)*(ABS(SEP(2))**(POW-1.D0))
+          DXYZ(3,I)=DXYZ(3,I)-KF*SEP(3)*(ABS(SEP(3))**(POW-1.D0))
+!          DXYZ(1,I)=0
+!          DXYZ(2,I)=0
+!          DXYZ(3,I)=0
           GOTO 10
       ENDIF
       PDIST=SQRT(PDIST/3.D0)
+      CALL SETLINPEN(XYZ)
       END
 

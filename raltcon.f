@@ -465,10 +465,6 @@ C       End Laurent
       CONX(2)=PRT(INT(CNX(2)))
       CONX(3)=PRT(INT(CNX(3)))
 
-      IF(ABS(CNX(5)-180.D0).LE.1D-3)THEN
-        CALL INITPEN(CONX(1),CONX(2),CONX(3))
-        RETURN
-      ENDIF
 
 
       CALL ADDVAL(ROTB,CONX(1))
@@ -481,6 +477,16 @@ C       End Laurent
       CALL ADDVAL(ROTB,GETLENGTH(ATMS)+1)
       CALL ADDRANGE(ATMS,RN,CONX(3))
       CALL ADDVAL(ROTB,GETLENGTH(ATMS))
+
+      IF(ABS(CNX(5)-180.D0).LE.1D-3)THEN
+        IF(ICONXN(1,CONX(3)).EQ.0.OR.ICONXN(1,CONX(3)).EQ.CONX(2))THEN
+            ICONXN(1,CONX(3))=CONX(2)
+        ELSE
+            GOTO 20
+        ENDIF
+        RETURN
+      ENDIF
+
       IF(F)THEN
       IF((ICONXN(2,CONX(3)).EQ.0.OR.ICONXN(2,CONX(3)).EQ.CONX(1))
      1.AND.(ICONXN(1,CONX(3)).EQ.0.OR.ICONXN(1,CONX(3)).EQ.CONX(2)))THEN
@@ -488,6 +494,8 @@ C       End Laurent
         ICONXN(1,CONX(3))=CONX(2)
         ICONXN(5,CONX(3))=1
         LOPT(2,CONX(3))=0
+
+
         RETURN
       ENDIF
 
@@ -625,13 +633,8 @@ C       THINGS BECOME SOMEWHAT HECTIC IF WE ARE DEALING WITH THE FIRST TWO ATOMS
                     PJ=J
                     PK=K
                 ELSE
-                    IF(K.EQ.2)THEN
-                        PJ=K
-                        PK=J
-                    ELSE
-                        PJ=J
-                        PK=K
-                    ENDIF
+                     PJ=K
+                     PK=J
                 ENDIF
               ENDIF
               IF(J.EQ.1)THEN
@@ -640,13 +643,8 @@ C       THINGS BECOME SOMEWHAT HECTIC IF WE ARE DEALING WITH THE FIRST TWO ATOMS
                       PJ=I
                       PK=K
                   ELSE
-                      IF(K.EQ.2)THEN
-                          PJ=K
-                          PK=I
-                      ELSE
-                          PJ=I
-                          PK=K
-                      ENDIF
+                     PJ=K
+                     PK=I
                   ENDIF
               ENDIF
               IF(K.EQ.1)THEN
@@ -678,6 +676,10 @@ C       THINGS BECOME SOMEWHAT HECTIC IF WE ARE DEALING WITH THE FIRST TWO ATOMS
       SUBROUTINE BLDPERM(IREAD)
       INCLUDE 'SIZES'
       COMMON /PERMUTE / PR,PRT
+      COMMON /DEPND / DEP,MINDEP,NEXTDEP
+      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF,PENRGY,PDIST,POW
+      INTEGER PI,PJ,PK
+      DOUBLE PRECISION PAXIS(3),POFF(3),KF,PENRGY,PDIST,POW
       INTEGER PR(NUMATM),PRT(NUMATM)
       INTEGER NBKSPC, INQ(NUMATM), DEP(NUMATM)
       LOGICAL LEADSP
@@ -687,10 +689,12 @@ C       THINGS BECOME SOMEWHAT HECTIC IF WE ARE DEALING WITH THE FIRST TWO ATOMS
       LOGICAL :: NINARR
       DOUBLE PRECISION :: READN
       DOUBLE PRECISION TMPC(8)
-      INTEGER II,JJ,CONX(8),MINDEP,TMPDEP,TMPIND
+      INTEGER II,JJ,CONX(8),MINDEP,TMPDEP,TMPIND,
+     1         NEXTDEP,THREE
       INTEGER TATMS
       DIMENSION ISTART(MAXCHAR/2), LOPT(3,NUMATM)
       CHARACTER SPACE*1,COMMA*1,LSQB*1,RSQB*1,LCRB*1,RCRB*1
+      LOGICAL MOVE
       DATA COMMA,SPACE,LSQB,RSQB,LCRB,RCRB,II,JJ,NVALS
      1 /',',' ','[',']','{','}',0,0,0/
 
@@ -738,8 +742,8 @@ C       THINGS BECOME SOMEWHAT HECTIC IF WE ARE DEALING WITH THE FIRST TWO ATOMS
 
       IF(TMPC(7).EQ.3) THEN
        GOTO 40
-!      ELSEIF(TMPC(7).EQ.4) THEN
-!       GOTO 50
+      ELSEIF(TMPC(7).EQ.4) THEN
+       GOTO 50
 !      ELSEIF(TMPC(7).EQ.5) THEN
 !       GOTO 60
       ENDIF
@@ -794,7 +798,43 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
 
       GOTO 10
 
+   50 LINE=LINE(ISTART(3)-1:)
+      DO I=1,MAXCHAR/2
+           IF(LINE.EQ.' ')EXIT
+          CALL SPLIT(LINE,',',CHUNK)
+          LEADSP=.TRUE.
+          NVALUE=0
+          DO II=1,MAXCHAR/2
+            ISTART(II)=0
+          END DO
+          DO II=1,MAXCHAR
+             IF (LEADSP.AND.CHUNK(II:II).NE.SPACE) THEN
+                NVALUE=NVALUE+1
+                ISTART(NVALUE)=II
+             END IF
+             LEADSP=(CHUNK(II:II).EQ.SPACE)
+          END DO
 
+          TMPC(7)=0
+          DO  II=1,4
+           TMPC(II+2)=0
+           TMPC(II+2)=READN(CHUNK,ISTART(II))
+           IF(TMPC(7).EQ.0.AND.TMPC(II+2).EQ.0)TMPC(7)=II
+          END DO
+
+          IF(TMPC(7).EQ.2) THEN
+            CONX(1)=INT(TMPC(1))
+            CONX(2)=INT(TMPC(2))
+            CONX(3)=INT(TMPC(3))
+            IF(ABS(TMPC(5)-180.D0).LT.1.D-3)
+     1       CALL INITPEN(CONX(1),CONX(2),CONX(3))
+
+          ENDIF
+
+
+
+      END DO
+      GOTO 10
 
   140 NBKSPC=NBKSPC+1
   130 DO I=1,NBKSPC
@@ -808,10 +848,15 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
 
       DO I=1,NUMATM
          MINDEP=0
-         DO J=I,1,-1
-         IF(DEP(J).NE.0.AND.(.NOT.NINARR(DEP(J),I)))MINDEP=J
+         NEXTDEP=0
+         DO J=NUMATM,1,-1
+         IF(DEP(J).NE.0.AND.(.NOT.NINARR(DEP(J),I)))THEN
+            NEXTDEP=MINDEP
+            MINDEP=J
+         ENDIF
          END DO
-         IF(MINDEP.NE.0)THEN
+         MINDEP=MAX(MINDEP,NEXTDEP)
+         IF(MINDEP.NE.0.AND.I.GT.MINDEP)THEN
             TMPDEP=DEP(I)
             TMPIND=PR(I)
             DO J=I,MINDEP+1,-1
@@ -819,10 +864,59 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
                 DEP(J)=DEP(J-1)
             END DO
             PR(MINDEP)=TMPIND
-            DEP(MINDEP)=TMPDEP
+            DEP(MINDEPS)=TMPDEP
          ENDIF
       END DO
       CALL CALCPRT
+
+!      IF(PI.NE.0)THEN
+!        MOVE=.TRUE.
+!        IF(PI.NE.1)THEN
+!
+!            DO I=PI-1,1,-1
+!                MOVE=DEP(I).EQ.O.OR.NINARR(DEP(I),PRT(PI))
+!                IF(.NOT.MOVE)THEN
+!                    EXIT
+!                ENDIF
+!            ENDDO
+!            IF(MOVE)THEN
+!            TMPDEP=DEP(PI)
+!
+!            DO I=PI,2,-1
+!                PR(I)=PR(I-1)
+!                DEP(I)=DEP(I-1)
+!            ENDDO
+!            DEP(1)=TMPDEP
+!            PR(1)=PI
+!            CALL CALCPRT()
+!            ENDIF
+!         ENDIF
+!         IF(MOVE)THEN
+!            THREE=MIN(PJ,PK)
+!            DO I=THREE-1,3,-1
+!                MOVE=DEP(I).EQ.O.OR.NINARR(DEP(I),PRT(THREE))
+!                IF(.NOT.MOVE)THEN
+!                    EXIT
+!                ENDIF
+!            ENDDO
+!            IF(MOVE)THEN
+!            TMPDEP=DEP(THREE)
+!            DO I=THREE,4,-1
+!                PR(I)=PR(I-1)
+!                DEP(I)=DEP(I-1)
+!            ENDDO
+!            DEP(3)=TMPDEP
+!            PR(3)=THREE
+!            CALL CALCPRT()
+!            ENDIF
+!      ENDIF
+!
+!        PI=PRT(PI)
+!        PJ=PRT(PJ)
+!        PK=PRT(PK)
+!      ENDIF
+
+
       RETURN
 
   150 WRITE(6,'(A)')'IMPOSSIBLE DEPENDENCIES'
@@ -844,8 +938,12 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
       INCLUDE 'SIZES'
       COMMON /PERMUTE / PR,PRT
       COMMON /GEOKST/ NATOMS,LABELS,NA(NUMATM),NB(NUMATM),NC(NUMATM)
-      INTEGER PR(NUMATM),PRT(NUMATM),LABELS(NUMATM),TMPLBL(NUMATM)
+      INTEGER PR(NUMATM),PRT(NUMATM),LABELS(NUMATM),TMPLBL(NUMATM),
+     1         DEP(NUMATM)
       DOUBLE PRECISION XYZ(3,NUMATM), TMPXYZ(3,NUMATM)
+
+      LOGICAL MOVE
+      LOGICAL :: NINARR
 
       DO I=1,NUMATM
       TMPXYZ(:,I)=XYZ(:,PR(I))

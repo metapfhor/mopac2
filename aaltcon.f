@@ -244,7 +244,7 @@
       COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF,PENRGY,PDIST,POW
       INTEGER I,J,PI,PJ,PK
       DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,SEP(3),
-     1 ESCF,KF,PENRGY,PDIST,POW
+     1 ESCF,KF,PENRGY,PDIST,POW,TMP
 
       PENRGY=0
       IF(PI.EQ.0)RETURN
@@ -285,7 +285,7 @@
      1NA(NUMATM),NB(NUMATM),NC(NUMATM)
       COMMON /GRADNT/ GRAD(MAXPAR),GNORM
       INTEGER I,J,PI,PJ,PK,NA,NB,NC
-      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,SEP(3),
+      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,SEP(3,3),
      1                   DXYZ(3,9*NUMATM),KF,PENRGY,PDIST,POW,GRAD,
      2                   GNORM
 !      IF(PDIST.NE.0)THEN
@@ -296,6 +296,7 @@
 !      ENDIF
 
       PDIST=0
+      TMP=0
       IF(PI.EQ.0)RETURN
 
       J=1
@@ -308,33 +309,47 @@
         I=PK
       END SELECT
       IF(J.LT.4)THEN
-          J=J+1
-          SEP(1)=XYZ(1,I)-POFF(1)
-          SEP(2)=XYZ(2,I)-POFF(2)
-          SEP(3)=XYZ(3,I)-POFF(3)
-          LN=DOT_PRODUCT(PAXIS,SEP)
-          SEP(1)=POFF(1)+LN*PAXIS(1)
-          SEP(2)=POFF(2)+LN*PAXIS(2)
-          SEP(3)=POFF(3)+LN*PAXIS(3)
-          SEP(1)=XYZ(1,I)-SEP(1)
-          SEP(2)=XYZ(2,I)-SEP(2)
-          SEP(3)=XYZ(3,I)-SEP(3)
 
-          LN=DOT_PRODUCT(PAXIS,DXYZ(:,I))
-!          DXYZ(1,I)=LN*PAXIS(1)
-!          DXYZ(2,I)=LN*PAXIS(2)
-!          DXYZ(3,I)=LN*PAXIS(3)
-          LN=SEP(1)**2+SEP(2)**2+SEP(3)**2
+          SEP(1,J)=XYZ(1,I)-POFF(1)
+          SEP(2,J)=XYZ(2,I)-POFF(2)
+          SEP(3,J)=XYZ(3,I)-POFF(3)
+          LN=DOT_PRODUCT(PAXIS,SEP(:,J))
+          SEP(1,J)=POFF(1)+LN*PAXIS(1)
+          SEP(2,J)=POFF(2)+LN*PAXIS(2)
+          SEP(3,J)=POFF(3)+LN*PAXIS(3)
+          SEP(1,J)=XYZ(1,I)-SEP(1,J)
+          SEP(2,J)=XYZ(2,I)-SEP(2,J)
+          SEP(3,J)=XYZ(3,I)-SEP(3,J)
+
+          LN=SEP(1,J)**2+SEP(2,J)**2+SEP(3,J)**2
+
           PDIST=PDIST+LN
-          DXYZ(1,I)=DXYZ(1,I)+KF*SEP(1)*(ABS(SEP(1))**(POW-1.D0))
-          DXYZ(2,I)=DXYZ(2,I)+KF*SEP(2)*(ABS(SEP(2))**(POW-1.D0))
-          DXYZ(3,I)=DXYZ(3,I)+KF*SEP(3)*(ABS(SEP(3))**(POW-1.D0))
+          TMP=TMP+DOT_PRODUCT(DXYZ(:,I),DXYZ(:,I))
+
 !          DXYZ(1,I)=0
 !          DXYZ(2,I)=0
 !          DXYZ(3,I)=0
+          J=J+1
           GOTO 10
       ENDIF
       PDIST=SQRT(PDIST/3.D0)
+      KF=MAX((PDIST/SQRT(TMP/3.D0)),1.D-16)
+      J=1
+   20 SELECT CASE (J)
+      CASE (1)
+        I=PI
+      CASE (2)
+        I=PJ
+      CASE (3)
+        I=PK
+      END SELECT
+      IF(J.LT.4)THEN
+          DXYZ(1,I)=DXYZ(1,I)+KF*SEP(1,J)*(ABS(SEP(1,J))**(POW-1.D0))
+          DXYZ(2,I)=DXYZ(2,I)+KF*SEP(2,J)*(ABS(SEP(2,J))**(POW-1.D0))
+          DXYZ(3,I)=DXYZ(3,I)+KF*SEP(3,J)*(ABS(SEP(3,J))**(POW-1.D0))
+          J=J+1
+          GOTO 20
+      ENDIF
 !      CALL SETLINPEN(XYZ)
       END
 

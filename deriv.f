@@ -1,7 +1,7 @@
       SUBROUTINE DERIV(GEO,GRAD)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INCLUDE 'SIZES'
-      DIMENSION GRAD(*), GEO(3,*)
+      DIMENSION GRAD(MAXPAR), GEO(3,NUMATM)
 ************************************************************************
 *
 *    DERIV CALCULATES THE DERIVATIVES OF THE ENERGY WITH RESPECT TO THE

@@ -1,0 +1,196 @@
+      SUBROUTINE INITRD
+      IMPLICIT DOUBLE PRECISION (A-H, O-Z)
+      INCLUDE 'SIZES'
+C
+C MODULE TO READ IN GEOMETRY FILE
+C ALGORITHM STOLEN FROM READMO
+C IN ORDER TO RUN SCAN EFFICIENTLY
+C
+      COMMON /READIN/ LOPT,LINE,BANNER,IREACT,INT
+     1                 SPACE,SPACE2,CH,CH2,IDATE
+      DIMENSION LOPT(3,NUMATM)
+      CHARACTER KEYWRD*241, KOMENT*81, TITLE*81, LINE*80, BANNER*80
+      CHARACTER KEYS(80)*1, SPACE*1, SPACE2*2, CH*1, CH2*2
+      CHARACTER ELEMNT*2, IDATE*24, GETNAM*80, NAME*4
+      COMMON /KEYWRD/ KEYWRD
+      COMMON /TITLES/ KOMENT,TITLE
+      COMMON /GEOVAR/ NVAR, LOC(2,MAXPAR), IDUMY, XPARAM(MAXPAR)
+      COMMON /PATH  / LATOM,LPARAM,REACT(200)
+      COMMON /MESH  / LATOM1, LPARA1, LATOM2, LPARA2
+      COMMON /ELEMTS/ ELEMNT(107)
+      COMMON /MOLKST/ NUMAT,NAT(NUMATM),NFIRST(NUMATM),
+     * NMIDLE(NUMATM),NLAST(NUMATM),NORBS,NELECS,NALPHA,NBETA,
+     * NCLOSE,NOPEN,NDUMY,FRACT
+      COMMON /OKMANY/ ISOK
+      PARAMETER (MXDIM=MAXORB+NUMATM)
+      COMMON /SYMRES/ TRANS,RTR,SIG,NAME,NAMO(MXDIM),INDX(MXDIM),
+     * ISTA(2)
+      COMMON /ISTOPE/ AMS(107)
+      COMMON /GEOM  / GEO(3,NUMATM)
+      COMMON /NUMCAL/ NUMCAL
+      COMMON /GEOKST/ NATOMS,LABELS(NUMATM),
+     1NA(NUMATM),NB(NUMATM),NC(NUMATM)
+      COMMON /GEOSYM/ NDEP, LOCPAR(MAXPAR), IDEPFN(MAXPAR),
+     1                      LOCDEP(MAXPAR)
+C     PATAS
+      COMMON /GRIDD/ XP(3),YP(3),ZP(3),DS
+      COMMON /CONNOL/ SCALE,SCINCR,DEN,NSURF
+      COMMON /MSTSOL/ EPS,DMP,MC,ICOMP,IFIELD,ICAV
+      COMMON /MSTSUR/ OMEGA,RD,RET,FRO,DR,NDIV,NESF,ICENT
+      COMMON /MSTCAV/ TABS,VMOL,DMOL,TCE,STEN,DSTEN,CMF
+      COMMON /POLY/ XE(500),YE(500),ZE(500),RE(500),
+     1SSFE(500),
+     1IPLOCH(1500),AS(1500),STOT,VOL,NSF,NC1(NUMATM)
+      COMMON /FACTOR/ FACTOR
+      COMMON /CLASES/ ICLASS(NUMATM)
+C       Laurent Modification
+      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT
+
+      COMMON /PERMUTE /PR,PRT
+
+
+C       Laurent end
+C**********************************************************************
+C* SHIHAO'S MODIFICATION START
+C* Added:
+      COMMON /MOLCONST/ CTYPE,ITORS(4),CVALUE
+C* SHIHAO'S MODIFICATION END
+C**********************************************************************
+C       LAURENT MODIFICATION
+      INTEGER PR(NUMATM),PRT(NUMATM)
+      DOUBLE PRECISION ATOT(3,3)
+C       END LAURENT
+C     PATAS
+
+      LOGICAL INT, AIGEO, ISOK
+      DIMENSION COORD(3,NUMATM),VALUE(40)
+      EQUIVALENCE (KEYS(1),KEYWRD)
+      DATA SPACE, SPACE2/' ','  '/
+
+
+      AIGEO=.FALSE.
+   10 CONTINUE
+C
+      CALL GETTXT
+      IF(INDEX(KEYWRD,'ECHO').NE.0)THEN
+         REWIND 5
+         ISOK=.FALSE.
+         DO 50 I=1,1000
+            READ(5,'(A)',END=60)KEYWRD
+            DO 20 J=80,2,-1
+   20       IF(KEYWRD(J:J).NE.' ')GOTO 30
+            J=1
+   30       DO 40 K=1,J
+   40       IF(ICHAR(KEYWRD(K:K)).LT.32)KEYWRD(K:K)='*'
+            WRITE(6,'(1X,A)')KEYWRD(1:J)
+   50    CONTINUE
+   60    CONTINUE
+         REWIND 5
+         CALL GETTXT
+      ENDIF
+      IF(INDEX(KEYWRD,'ECHO').NE.0)WRITE(6,'(''1'')')
+      IF(KEYWRD(1:1) .NE. SPACE) THEN
+         CH=KEYWRD(1:1)
+         KEYWRD(1:1)=SPACE
+         DO 70 I=2,239
+            CH2=KEYWRD(I:I)
+            KEYWRD(I:I)=CH
+            CH=CH2
+            IF(KEYWRD(I+1:I+2) .EQ. SPACE2) THEN
+               KEYWRD(I+1:I+1)=CH
+               GOTO 80
+            ENDIF
+   70    CONTINUE
+         CH2=KEYWRD(240:240)
+         KEYWRD(240:240)=CH
+         KEYWRD(241:241)=CH2
+   80    CONTINUE
+      ENDIF
+      IF(KOMENT(1:1) .NE. SPACE) THEN
+         CH=KOMENT(1:1)
+         KOMENT(1:1)=SPACE
+         DO 90 I=2,79
+            CH2=KOMENT(I:I)
+            KOMENT(I:I)=CH
+            CH=CH2
+            IF(KOMENT(I+1:I+2) .EQ. SPACE2) THEN
+               KOMENT(I+1:I+1)=CH
+               GOTO 100
+            ENDIF
+   90    CONTINUE
+         CH2=KOMENT(80:80)
+         KOMENT(80:80)=CH
+         KOMENT(81:81)=CH2
+  100    CONTINUE
+      ENDIF
+      IF(TITLE(1:1) .NE. SPACE) THEN
+         CH=TITLE(1:1)
+         TITLE(1:1)=SPACE
+         DO 110 I=2,79
+            CH2=TITLE(I:I)
+            TITLE(I:I)=CH
+            CH=CH2
+            IF(TITLE(I+1:I+2) .EQ. SPACE2) THEN
+               TITLE(I+1:I+1)=CH
+               GOTO 120
+            ENDIF
+  110    CONTINUE
+         CH2=TITLE(80:80)
+         TITLE(80:80)=CH
+         TITLE(81:81)=CH2
+  120    CONTINUE
+      ENDIF
+      DO 121 I=1,200
+  121 REACT(I)=0.D0
+      LATOM=0
+      LPARAM=0
+      IF(INDEX(KEYWRD,'OLDGEO').EQ.0) THEN
+         NVAR=0
+         NDEP=0
+         IF(AIGEO.OR.INDEX(KEYWRD,'AIGIN').NE.0)THEN
+            CALL GETGEG(5,LABELS,GEO,     NA,NB,NC,AMS,NATOMS,INT)
+         IF(NVAR.EQ.0)THEN
+         DO 122 J=1,3
+         DO 122 I=1,NATOMS
+  122    LOPT(J,I)=0
+         ENDIF
+         ELSE
+            CALL GETGEO(5,LABELS,GEO,LOPT,NA,NB,NC,AMS,NATOMS,INT)
+            IF(NATOMS.LT.0)THEN
+               REWIND 5
+               IF(NUMCAL.NE.1)THEN
+                  WRITE(6,'(//,A)')'   GAUSSIAN INPUT REQUIRES STAND-ALO
+     1NE JOB'
+                  WRITE(6,'(/,A)')'   OR KEYWORD "AIGIN"'
+                  STOP
+               ENDIF
+               AIGEO=.TRUE.
+               GOTO 10
+            ENDIF
+         ENDIF
+         IF(NATOMS.EQ.0)STOP
+      ELSE
+      DEGREE=90.D0/ASIN(1.D0)
+      IF(NA(1).EQ.99)THEN
+      DO 128 I=1,NATOMS
+      DO 128 J=1,3
+      LOPT(J,I)=1
+  128 COORD(J,I)=GEO(J,I)
+      LOPT(1,1)=0
+      LOPT(2,1)=0
+      LOPT(3,1)=0
+      LOPT(2,2)=0
+      LOPT(3,2)=0
+      LOPT(3,3)=0
+      CALL XYZINT(COORD,NATOMS,NA,NB,NC,DEGREE,GEO)
+      ELSE
+      DO 130 I=1,NATOMS
+      DO 130 J=2,3
+ 130  GEO(J,I)=GEO(J,I)*DEGREE
+      ENDIF
+      ENDIF
+
+
+      RETURN
+
+      END

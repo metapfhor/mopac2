@@ -7,7 +7,7 @@
 *************************************************************************
 
 
-      SUBROUTINE AALTCON(XYZ,DEGREE)
+      SUBROUTINE AALTCON(XYZ)
       INCLUDE 'SIZES'
       DOUBLE PRECISION XYZ(3,NUMATM),DEGREE
       COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
@@ -18,13 +18,13 @@
       INTEGER I, ATOMS(*),TRANSL(*),BANGL(*),DIHDR(*),L
       INTEGER :: GETLENGTH
       POINTER (A,ATOMS),(T,TRANSL),(B,BANGL),(D,DIHDR)
+      DATA DEGREE /57.29577951D00/
       L=GETLENGTH(ROTD)
       A=ATMS
       T=TRLB
       B=ROTB
       D=ROTD
       I=0
-
 
 
    10 IF((I+5).LE.GETLENGTH(TRLB))THEN
@@ -214,160 +214,3 @@
    10  CONTINUE
       RETURN
       END
-
-      SUBROUTINE SETLINPEN(XYZ)
-      INCLUDE 'SIZES'
-      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF,PENRGY,PDIST,POW,KI
-      COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT
-      INTEGER I,J,K,PI,PJ,PK
-      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,KF,ATOT(3,3),
-     1                   TMP(3),XHAT,YHAT,ZHAT,OFF,PENRGY,PDIST,POW,KI
-      LOGICAL DET
-
-      IF(PI.EQ.0)RETURN
-
-      POFF(1:3)=XYZ(1:3,PI)
-      PAXIS(1)=XYZ(1,PJ)-POFF(1)
-      PAXIS(2)=XYZ(2,PJ)-POFF(2)
-      PAXIS(3)=XYZ(3,PJ)-POFF(3)
-
-      LN=SQRT(PAXIS(1)**2+PAXIS(2)**2+PAXIS(3)**2)
-      PAXIS(1)=PAXIS(1)/LN
-      PAXIS(2)=PAXIS(2)/LN
-      PAXIS(3)=PAXIS(3)/LN
-
-
-
-      END
-
-      SUBROUTINE PENENERGY(XYZ,ESCF)
-      INCLUDE 'SIZES'
-      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF,PENRGY,PDIST,POW,KI
-      INTEGER I,J,PI,PJ,PK
-      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,SEP(3),
-     1 ESCF,KF,PENRGY,PDIST,POW,TMP,KI
-      LOGICAL DET
-
-      PENRGY=0
-      IF(PI.EQ.0)RETURN
-
-      J=1
-   10 SELECT CASE (J)
-      CASE (1)
-        I=PI
-      CASE (2)
-        I=PJ
-      CASE (3)
-        I=PK
-      END SELECT
-      IF(J.LT.4)THEN
-          J=J+1
-          SEP(1)=XYZ(1,I)-POFF(1)
-          SEP(2)=XYZ(2,I)-POFF(2)
-          SEP(3)=XYZ(3,I)-POFF(3)
-          LN=DOT_PRODUCT(PAXIS,SEP)
-          SEP(1)=POFF(1)+LN*PAXIS(1)
-          SEP(2)=POFF(2)+LN*PAXIS(2)
-          SEP(3)=POFF(3)+LN*PAXIS(3)
-          SEP(1)=XYZ(1,I)-SEP(1)
-          SEP(2)=XYZ(2,I)-SEP(2)
-          SEP(3)=XYZ(3,I)-SEP(3)
-          LN=((SEP(1)**2+SEP(2)**2+SEP(3)**2)**((POW+1.D0)/2.D0))
-          PENRGY=PENRGY+(LN*KF/(POW+1.D0))
-          GOTO 10
-      ENDIF
-        ESCF=ESCF+PENRGY
-
-      END
-
-      SUBROUTINE PENFORCE(XYZ,DXYZ)
-      INCLUDE 'SIZES'
-      COMMON /LINPEN / PAXIS,POFF,PI,PJ,PK,KF,PENRGY,PDIST,POW,KI
-      COMMON /GEOKST/ NATOMS,LABELS(NUMATM),
-     1NA(NUMATM),NB(NUMATM),NC(NUMATM)
-      COMMON /GRADNT/ GRAD(MAXPAR),GNORM
-      COMMON /STFU/ DAXIS
-      INTEGER I,J,PI,PJ,PK,NA,NB,NC
-      DOUBLE PRECISION PAXIS(3),POFF(3),XYZ(3,NUMATM),LN,SEP(3,3),
-     1                   DXYZ(3,9*NUMATM),KF,PENRGY,PDIST,POW,GRAD,
-     2                   GNORM,DAXIS,DTOT,KI
-!      IF(PDIST.NE.0)THEN
-!        POW=-REAL(INT(DLOG10(PDIST)))+1.D0
-!        POW=MAX(1.D0,POW)
-!      ELSE
-!        POW=1.D0
-!      ENDIF
-
-      PDIST=0
-      DTOT=0
-      DAXIS=0
-      IF(PI.EQ.0)RETURN
-
-      J=1
-   10 SELECT CASE (J)
-      CASE (1)
-        I=PI
-      CASE (2)
-        I=PJ
-      CASE (3)
-        I=PK
-      END SELECT
-      IF(J.LT.4)THEN
-
-          SEP(1,J)=XYZ(1,I)-POFF(1)
-          SEP(2,J)=XYZ(2,I)-POFF(2)
-          SEP(3,J)=XYZ(3,I)-POFF(3)
-          LN=DOT_PRODUCT(PAXIS,SEP(:,J))
-          SEP(1,J)=POFF(1)+LN*PAXIS(1)
-          SEP(2,J)=POFF(2)+LN*PAXIS(2)
-          SEP(3,J)=POFF(3)+LN*PAXIS(3)
-          SEP(1,J)=XYZ(1,I)-SEP(1,J)
-          SEP(2,J)=XYZ(2,I)-SEP(2,J)
-          SEP(3,J)=XYZ(3,I)-SEP(3,J)
-
-          LN=SEP(1,J)**2+SEP(2,J)**2+SEP(3,J)**2
-
-          PDIST=PDIST+LN
-          DAXIS=DAXIS+ABS(DOT_PRODUCT(DXYZ(:,I),PAXIS))
-
-!          DXYZ(1,I)=0
-!          DXYZ(2,I)=0
-!          DXYZ(3,I)=0
-          J=J+1
-          GOTO 10
-      ENDIF
-      PDIST=SQRT(PDIST/3.D0)
-      DAXIS=SQRT(DAXIS/3.D0)
-!      IF(.NOT.DET.AND.GNORM.GT.0)THEN
-!        KF=1.D1**(FLOOR(LOG10(GNORM))+1)
-!        DET=.TRUE.
-!      ENDIF
-!      IF(PDIST.LT.1.D-1)THEN
-!          IF(DAXIS.LT.10.D0)THEN
-!              KF=1.D3
-!          ELSE
-!              KF=1.D1
-!          ENDIF
-!      ELSE
-!          KF=1.D3
-!      ENDIF
-
-      J=1
-   20 SELECT CASE (J)
-      CASE (1)
-        I=PI
-      CASE (2)
-        I=PJ
-      CASE (3)
-        I=PK
-      END SELECT
-      IF(J.LT.4)THEN
-          DXYZ(1,I)=DXYZ(1,I)+KF*SEP(1,J)*(ABS(SEP(1,J))**(POW-1.D0))
-          DXYZ(2,I)=DXYZ(2,I)+KF*SEP(2,J)*(ABS(SEP(2,J))**(POW-1.D0))
-          DXYZ(3,I)=DXYZ(3,I)+KF*SEP(3,J)*(ABS(SEP(3,J))**(POW-1.D0))
-          J=J+1
-          GOTO 20
-      ENDIF
-!      CALL SETLINPEN(XYZ)
-      END
-

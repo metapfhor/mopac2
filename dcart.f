@@ -210,12 +210,6 @@ C         WRITE(6,*)'SWDEBUG',ANGLE,CVALUE
 C* SHIHAO'S MODIFICATION END
 C**********************************************************************
 
-C       LAURENT MODIFICATION: ADDING LINEARIZATION FORCE
-        IF(INDEX(KEYWRD,"ALTCON").NE.O)THEN
-            CALL PENFORCE(COORD,DXYZ)
-        ENDIF
-C       END LAURENT
-
 
 C COSMO change A. Klamt
 C analytic calculation of the gradient of the dielectric energy A.Klamt

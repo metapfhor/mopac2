@@ -34,13 +34,15 @@ C             Laurent Modification: added
       COMMON /PERMUTE /PR,PRT
       INTEGER PR(NUMATM),PRT(NUMATM)
       INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS
-      LOGICAL APPLIED
+      LOGICAL APPLIED,PRMTD
       DOUBLE PRECISION VALS(3*NUMATM),ATOT(3,3)
       DOUBlE PRECISION DX, DY, DZ
      1  XYZINIT(3,NUMATM)
 
       COMMON /KEYWRD/ KEYWRD
       CHARACTER KEYWRD*241
+      SAVE PRMTD
+      DATA PRMTD /.FALSE./
 C       Laurent End
       DATA ICALCN/0/
       IGEOOK=99
@@ -49,8 +51,12 @@ C       Laurent Modification: Recenter on the first atom
 
 
       IF(INDEX(KEYWRD,'ALTCON').NE.0.AND..NOT.APPLIED.AND.TRLB.NE.0)THEN
-        CALL PERATMS(XYZ)
+        IF(.NOT.PRMTD)THEN
+            CALL PERATMS(XYZ)
+            PRMTD=.TRUE.
+        ENDIF
         CALL AALTCON(XYZ,DEGREE)
+        APPLIED=.TRUE.
       ENDIF
 
 
@@ -308,18 +314,6 @@ C       Update our axes
             GEO(3,I)=GEO(3,I)*DEGREE
         END DO
       ENDIF
-
-
-      IF(INDEX(KEYWRD,'ALTCON').NE.0.
-     1 AND..NOT.APPLIED.AND.TRLB.NE.0)THEN
-        CALL SETLINPEN(XYZ)
-        APPLIED=.TRUE.
-      ENDIF
-
-      IF(.NOT.APPLIED)THEN
-        APPLIED=.TRUE.
-      ENDIF
-
 C       Laurent End
 
       GEO(1,1)=0.D0

@@ -28,6 +28,7 @@
       CHARACTER KEYWRD*241, KOMENT*81, TITLE*81, BLANK*80, LTXT*1
       LOGICAL CART
       MODE=MODE1
+
       IF(MODE.EQ.1)THEN
          FLAG1=' *'
          FLAG0='  '
@@ -127,6 +128,7 @@ C
          ELSE
             J=MAX(9,MAXTXT+3)
          ENDIF
+
          IF(LABELS(I).NE.0)THEN
             IF(MODE.NE.1)THEN
                IF(LABELS(I).NE.99.AND.LABELS(I).NE.107)THEN

@@ -19,7 +19,7 @@
       CHARACTER (LEN=MAXCHAR) :: LINE
       CHARACTER (LEN=MAXCHAR) :: CHUNK
       CHARACTER (LEN=MAXCHAR) :: RN
-      DOUBLE PRECISION TMPC(8),XYZ(3,NUMATM)
+      DOUBLE PRECISION TMPC(9),XYZ(3,NUMATM)
       INTEGER II,JJ,EMPTY(1)
       INTEGER TATMS
       DIMENSION ISTART(MAXCHAR/2), LOPT(3,NUMATM)
@@ -64,19 +64,19 @@
         ENDIF
       END DO
 
-      TMPC(7)=0
-      DO I=1,6
+      TMPC(9)=0
+      DO I=1,8
        TMPC(I)=0
        TMPC(I)=READN(LINE,ISTART(I))
-       IF(TMPC(7).EQ.0.AND.TMPC(I).EQ.0)TMPC(7)=I
+       IF(TMPC(9).EQ.0.AND.TMPC(I).EQ.0)TMPC(9)=I
       END DO
 
 
-      IF(TMPC(7).EQ.3) THEN
+      IF(TMPC(9).EQ.3) THEN
        GOTO 40
-      ELSEIF(TMPC(7).EQ.4) THEN
+      ELSEIF(TMPC(9).EQ.4) THEN
        GOTO 50
-      ELSEIF(TMPC(7).EQ.5) THEN
+      ELSEIF(TMPC(9).EQ.5) THEN
        GOTO 60
       ENDIF
 
@@ -98,35 +98,41 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
              LEADSP=(CHUNK(II:II).EQ.SPACE)
           END DO
 
-          TMPC(7)=0
-          DO  II=1,5
+          TMPC(9)=0
+          DO  II=1,7
            TMPC(II+1)=0
            TMPC(II+1)=READN(CHUNK,ISTART(II))
-           IF(TMPC(7).EQ.0.AND.TMPC(II+1).EQ.0)TMPC(7)=II
+           IF(TMPC(9).EQ.0.AND.TMPC(II+1).EQ.0)TMPC(9)=II
           END DO
 
-          IF(TMPC(7).EQ.2) THEN
-            IF(ISTART(4).EQ.0)THEN
+          IF(TMPC(9).EQ.2) THEN
+            IF(INDEX(CHUNK,LSQB).EQ.0)THEN
                 RN(:)=''
             ELSE
-                RN(1:)=CHUNK(ISTART(4):)
+                RN(1:)=CHUNK(INDEX(CHUNK,LSQB):)
            ENDIF
-            CALL ADDTRLB(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
-          ELSEIF(TMPC(7).EQ.3) THEN
-            IF(ISTART(5).EQ.0)THEN
+            CALL ADDTRLB(TMPC,RN,INDEX(CHUNK,'F').NE.0
+     1       .OR.INDEX(CHUNK,'S').NE.0,LOPT)
+            IF(TMPC(5).NE.0)CALL ADDSCAN(TMPC(4),TMPC(5),INT(TMPC(6)))
+          ELSEIF(TMPC(9).EQ.3) THEN
+            IF(INDEX(CHUNK,LSQB).EQ.0)THEN
                 RN(:)=''
             ELSE
-                RN(1:)=CHUNK(ISTART(5):)
+                RN(1:)=CHUNK(INDEX(CHUNK,LSQB):)
           ENDIF
-            CALL ADDANGLE(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
+            CALL ADDANGLE(TMPC,RN,INDEX(CHUNK,'F').NE.0
+     1       .OR.INDEX(CHUNK,'S').NE.0,LOPT)
+            IF(TMPC(6).NE.0)CALL ADDSCAN(TMPC(5),TMPC(6),INT(TMPC(7)))
 
-          ELSEIF(TMPC(7).EQ.4) THEN
-             IF(ISTART(6).EQ.0)THEN
+          ELSEIF(TMPC(9).EQ.4) THEN
+             IF(INDEX(CHUNK,LSQB).EQ.0)THEN
                 RN(:)=''
             ELSE
-                RN(1:)=CHUNK(ISTART(6):)
+                RN(1:)=CHUNK(INDEX(CHUNK,LSQB):)
           ENDIF
-            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
+            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0
+     1       .OR.INDEX(CHUNK,'S').NE.0,LOPT)
+            IF(TMPC(7).NE.0)CALL ADDSCAN(TMPC(6),TMPC(7),INT(TMPC(8)))
           ENDIF
 
 
@@ -154,28 +160,31 @@ C     FIRST INFO ON THIS LINE IS A BOND ANGLE
              LEADSP=(CHUNK(II:II).EQ.SPACE)
           END DO
 
-          TMPC(7)=0
-          DO  II=1,4
+          TMPC(9)=0
+          DO  II=1,6
            TMPC(II+2)=0
            TMPC(II+2)=READN(CHUNK,ISTART(II))
-           IF(TMPC(7).EQ.0.AND.TMPC(II+2).EQ.0)TMPC(7)=II
+           IF(TMPC(9).EQ.0.AND.TMPC(II+2).EQ.0)TMPC(9)=II
           END DO
 
-          IF(TMPC(7).EQ.2) THEN
-            IF(ISTART(4).EQ.0)THEN
+          IF(TMPC(9).EQ.2) THEN
+            IF(INDEX(CHUNK,LSQB).EQ.0)THEN
                 RN(:)=''
             ELSE
-                RN(1:)=CHUNK(ISTART(4):)
+                RN(1:)=CHUNK(INDEX(CHUNK,LSQB):)
           ENDIF
             CALL ADDANGLE(TMPC,RN,
-     1       INDEX(CHUNK,'F').NE.0,LOPT)
-          ELSEIF(TMPC(7).EQ.3) THEN
-            IF(ISTART(5).EQ.0)THEN
+     1       INDEX(CHUNK,'F').NE.0.OR.INDEX(CHUNK,'S').NE.0,LOPT)
+            IF(TMPC(6).NE.0)CALL ADDSCAN(TMPC(5),TMPC(6),INT(TMPC(7)))
+          ELSEIF(TMPC(9).EQ.3) THEN
+            IF(INDEX(CHUNK,LSQB).EQ.0)THEN
                 RN(:)=''
             ELSE
-                RN(1:)=CHUNK(ISTART(5):)
+                RN(1:)=CHUNK(INDEX(CHUNK,LSQB):)
            ENDIF
-            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
+            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0
+     1       .OR.INDEX(CHUNK,'S').NE.0,LOPT)
+            IF(TMPC(7).NE.0)CALL ADDSCAN(TMPC(6),TMPC(7),INT(TMPC(8)))
 
 
           ENDIF
@@ -205,20 +214,22 @@ C     FIRST INFO ON THIS LINE IS A DIHEDRAL ANGLE
              LEADSP=(CHUNK(II:II).EQ.SPACE)
           END DO
 
-          TMPC(7)=0
-          DO  II=1,3
+          TMPC(9)=0
+          DO  II=1,5
            TMPC(II+3)=0
            TMPC(II+3)=READN(CHUNK,ISTART(II))
-           IF(TMPC(7).EQ.0.AND.TMPC(II+3).EQ.0)TMPC(7)=II
+           IF(TMPC(9).EQ.0.AND.TMPC(II+3).EQ.0)TMPC(9)=II
           ENDDO
 
-          IF(TMPC(7).EQ.2) THEN
-          IF(ISTART(4).EQ.0)THEN
+          IF(TMPC(9).EQ.2) THEN
+          IF(INDEX(CHUNK,LSQB).EQ.0)THEN
             RN(:)=''
             ELSE
-            RN(1:)=CHUNK(ISTART(4):)
+            RN(1:)=CHUNK(INDEX(CHUNK,LSQB):)
           ENDIF
-            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0,LOPT)
+            CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0
+     1       .OR.INDEX(CHUNK,'S').NE.0,LOPT)
+            IF(TMPC(7).NE.0)CALL ADDSCAN(TMPC(6),TMPC(7),INT(TMPC(8)))
           ENDIF
       END DO
 
@@ -682,7 +693,7 @@ C       THINGS BECOME SOMEWHAT HECTIC IF WE ARE DEALING WITH THE FIRST TWO ATOMS
       CHARACTER (LEN=MAXCHAR) :: RN
       LOGICAL :: NINARR
       DOUBLE PRECISION :: READN
-      DOUBLE PRECISION TMPC(8)
+      DOUBLE PRECISION TMPC(9)
       INTEGER II,JJ,CONX(8),MINDEP,TMPDEP,TMPIND,
      1         NEXTDEP,TWO
       INTEGER TATMS
@@ -726,19 +737,21 @@ C       THINGS BECOME SOMEWHAT HECTIC IF WE ARE DEALING WITH THE FIRST TWO ATOMS
         ENDIF
       END DO
 
-      TMPC(7)=0
-      DO I=1,6
+      TMPC(9)=0
+      DO I=1,8
        TMPC(I)=0
        TMPC(I)=READN(LINE,ISTART(I))
-       IF(TMPC(7).EQ.0.AND.TMPC(I).EQ.0)TMPC(7)=I
+       IF(TMPC(9).EQ.0.AND.TMPC(I).EQ.0)TMPC(9)=I
       END DO
 
 
-      IF(TMPC(7).EQ.3) THEN
+      IF(TMPC(9).EQ.3) THEN
        GOTO 40
-      ELSEIF(TMPC(7).EQ.4) THEN
+      ELSEIF(TMPC(9).EQ.4) THEN
        GOTO 50
-!      ELSEIF(TMPC(7).EQ.5) THEN
+      ELSE
+        GOTO 10
+!      ELSEIF(TMPC(9).EQ.5) THEN
 !       GOTO 60
       ENDIF
 
@@ -760,14 +773,14 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
              LEADSP=(CHUNK(II:II).EQ.SPACE)
           END DO
 
-          TMPC(7)=0
-          DO  II=1,5
+          TMPC(9)=0
+          DO  II=1,7
            TMPC(II+1)=0
            TMPC(II+1)=READN(CHUNK,ISTART(II))
-           IF(TMPC(7).EQ.0.AND.TMPC(II+1).EQ.0)TMPC(7)=II
+           IF(TMPC(9).EQ.0.AND.TMPC(II+1).EQ.0)TMPC(9)=II
           END DO
 
-          IF(TMPC(7).EQ.2) THEN
+          IF(TMPC(9).EQ.2) THEN
             CONX(1)=INT(TMPC(1))
             CONX(2)=INT(TMPC(2))
 
@@ -779,9 +792,9 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
                 CALL ADDVAL(DEP(CONX(2)),CONX(1))
             ENDIF
 
-          ELSEIF(TMPC(7).EQ.3) THEN
+          ELSEIF(TMPC(9).EQ.3) THEN
 
-          ELSEIF(TMPC(7).EQ.4) THEN
+          ELSEIF(TMPC(9).EQ.4) THEN
 
           ENDIF
 
@@ -809,14 +822,14 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
              LEADSP=(CHUNK(II:II).EQ.SPACE)
           END DO
 
-          TMPC(7)=0
-          DO  II=1,4
+          TMPC(9)=0
+          DO  II=1,6
            TMPC(II+2)=0
            TMPC(II+2)=READN(CHUNK,ISTART(II))
-           IF(TMPC(7).EQ.0.AND.TMPC(II+2).EQ.0)TMPC(7)=II
+           IF(TMPC(9).EQ.0.AND.TMPC(II+2).EQ.0)TMPC(9)=II
           END DO
 
-          IF(TMPC(7).EQ.2) THEN
+          IF(TMPC(9).EQ.2) THEN
             CONX(1)=INT(TMPC(1))
             CONX(2)=INT(TMPC(2))
             CONX(3)=INT(TMPC(3))

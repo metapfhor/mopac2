@@ -18,13 +18,14 @@
       INTEGER I, ATOMS(*),TRANSL(*),BANGL(*),DIHDR(*),L
       INTEGER :: GETLENGTH
       POINTER (A,ATOMS),(T,TRANSL),(B,BANGL),(D,DIHDR)
-      DATA DEGREE /57.29577951D00/
+      DEGREE=90.D0/ASIN(1.D0)
       L=GETLENGTH(ROTD)
       A=ATMS
       T=TRLB
       B=ROTB
       D=ROTD
       I=0
+
 
 
    10 IF((I+5).LE.GETLENGTH(TRLB))THEN
@@ -214,3 +215,4 @@
    10  CONTINUE
       RETURN
       END
+

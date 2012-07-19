@@ -279,11 +279,11 @@ C* SHIHAO MODIFICATION END ******************************************
      115X,''CALC''''D. '',A)') VERSON, IDATE
 C
 C CONVERT ANGLES TO RADIANS
-      DO 140 J=2,3
-C$DOIT VBEST
-         DO 140 I=1,NATOMS
-            GEO(J,I) = GEO(J,I) * CONVTR
-  140 CONTINUE
+!      DO 140 J=2,3
+!C$DOIT VBEST
+!         DO 140 I=1,NATOMS
+!            GEO(J,I) = GEO(J,I) * CONVTR
+!  140 CONTINUE
 C
 C CHECK DATA
 C

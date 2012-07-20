@@ -48,6 +48,7 @@ C
 C       Laurent Modification
 C       Added: unit vectors to be transformed as the axes are rotated
 C       as well as a translation vector in order to return to the input coords
+      COMMON /GENRAL/ COORD(3,NUMATM), COLD(3,NUMATM*3), GOLD(MAXPAR)
 
       COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT(3,3)
       COMMON /ARRS / DESC
@@ -60,6 +61,8 @@ C       as well as a translation vector in order to return to the input coords
       COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
      1                  VALS, NVALS
       INTEGER DESC
+      INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS
+      DOUBLE PRECISION VALS(3*NUMATM)
       LOGICAL APPLIED
       DATA DESC,ISCAN,NSCAN,NDIM /2,0,1,0/
 
@@ -183,7 +186,7 @@ C       LAURENT MODIFICATION
       WRITE(6,'(//''   INITIAL HEAT OF FORMATION =   '',F17.5,/'''')')
      1 EINIT
       CALL GMETRY(GEO,COORD)
-      GNORM=SQRT(DOT(GRAD,GRAD,NVAR))
+      !GNORM=SQRT(DOT(GRAD,GRAD,NVAR))
 C       END LAURENT
 
       IF (INDEX(KEYWRD,'RESTART').EQ.0)THEN
@@ -359,7 +362,10 @@ C     PATAS
       LIMSCF=.FALSE.
       WRITE(6,'(///,'' TOTAL CPU TIME: '',F16.2,'' SECONDS'')') TIM
       WRITE(6,'(/,'' == MOPAC DONE =='')')
-       APPLIED=.FALSE.
+C       LAURENT MODIFICATION:SCANNING
+      CALL GMETRY(GEO,COORD)
+      APPLIED=.FALSE.
       IF(ISCAN.LT.NSCAN)GOTO 21
+C       END LAURENT
       IF(ISOK) GOTO 10
       END

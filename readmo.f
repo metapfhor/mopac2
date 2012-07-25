@@ -87,7 +87,12 @@ C       Laurent Modification
       COMMON /AXES / XHAT(3),YHAT(3),ZHAT(3),OFF(3),ATOT
 
       COMMON /PERMUTE /PR,PRT
-
+            INTEGER PR(NUMATM),PRT(NUMATM)
+      DOUBLE PRECISION ATOT(3,3)
+      COMMON /SCANR / ISCAN,NSCAN,STEPS,STARTS,LIMS,NDIM,IVALS,REDSCN
+      INTEGER ISCAN,NSCAN,IVALS(2,3*NUMATM),NDIM
+      DOUBLE PRECISION STEPS(3*NUMATM),STARTS(3*NUMATM),LIMS(3*NUMATM)
+      LOGICAL REDSCN
 
 C       Laurent end
 C**********************************************************************
@@ -97,8 +102,7 @@ C* Added:
 C* SHIHAO'S MODIFICATION END
 C**********************************************************************
 C       LAURENT MODIFICATION
-      INTEGER PR(NUMATM),PRT(NUMATM)
-      DOUBLE PRECISION ATOT(3,3)
+
 C       END LAURENT
 C     PATAS
 
@@ -114,6 +118,9 @@ C     PATAS
       AIGEO=.FALSE.
    10 CONTINUE
 C
+C      LAURENT MODIFICATION
+      IF(.NOT.REDSCN)THEN
+C       END LAURENT
       CALL GETTXT
       IF(INDEX(KEYWRD,'ECHO').NE.0)THEN
          REWIND 5
@@ -232,6 +239,9 @@ C
  130  GEO(J,I)=GEO(J,I)*DEGREE
       ENDIF
       ENDIF
+C      LAURENT MODIFICATION
+      ENDIF !!!!REDCSN
+C       END LAURENT
 
 C       LAURENT: DONE READING IN AT THIS POINT
 
@@ -366,6 +376,7 @@ C    FLAG FOR OPTIMIZE
                XPARAM(NVAR)   = GEO(J,I)
   180    CONTINUE
       ENDIF
+
 C READ IN PATH VALUES
       IF(IFLAG.EQ.0) GO TO 221
       IF(INDEX(KEYWRD,'NLLSQ').NE.0)THEN
@@ -603,8 +614,11 @@ C       Laurent End
   240       CONTINUE
          ENDIF
       ENDIF
+      IF(.NOT.REDSCN)THEN
       CALL SYMTRZ(COORD,C,NORBS,NORBS,.FALSE.,.FALSE.)
+
       WRITE(6,'(//''     MOLECULAR POINT GROUP   :   '',A4)') NAME
+      ENDIF
       IF(   INDEX(KEYWRD,' XYZ') .NE. 0 )THEN
          IF( NVAR .NE. 0 .AND.
      1 INT.AND.(NDEP .NE. 0 .OR.  NVAR.LT.3*NUMAT-6)) THEN

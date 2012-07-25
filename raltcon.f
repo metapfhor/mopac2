@@ -12,7 +12,9 @@
       INCLUDE 'SIZES'
       COMMON /ALTCON / TRLB, ROTB, ROTD, ATMS, ICONXN, APPLIED,
      1                  VALS, NVALS
-      INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS
+      COMMON /PERMUTE / PR,PRT
+      INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS,PR(NUMATM)
+     1 ,PRT(NUMATM)
       LOGICAL APPLIED
       DOUBLE PRECISION VALS(3*NUMATM)
       LOGICAL LEADSP
@@ -22,10 +24,15 @@
       DOUBLE PRECISION TMPC(9),XYZ(3,NUMATM)
       INTEGER II,JJ,EMPTY(1)
       INTEGER TATMS
+      LOGICAL SCNING
       DIMENSION ISTART(MAXCHAR/2), LOPT(3,NUMATM)
       CHARACTER SPACE*1,COMMA*1,LSQB*1,RSQB*1,LCRB*1,RCRB*1
       DATA COMMA,SPACE,LSQB,RSQB,LCRB,RCRB,II,JJ,NVALS
      1 /',',' ','[',']','{','}',0,0,0/
+
+
+
+
 
       TRLB=NEWARR(5)
       ROTB=NEWARR(6)
@@ -113,7 +120,6 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
            ENDIF
             CALL ADDTRLB(TMPC,RN,INDEX(CHUNK,'F').NE.0
      1       .OR.INDEX(CHUNK,'S').NE.0,LOPT)
-            IF(TMPC(5).NE.0)CALL ADDSCAN(TMPC(4),TMPC(5),INT(TMPC(6)))
           ELSEIF(TMPC(9).EQ.3) THEN
             IF(INDEX(CHUNK,LSQB).EQ.0)THEN
                 RN(:)=''
@@ -122,7 +128,6 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
           ENDIF
             CALL ADDANGLE(TMPC,RN,INDEX(CHUNK,'F').NE.0
      1       .OR.INDEX(CHUNK,'S').NE.0,LOPT)
-            IF(TMPC(6).NE.0)CALL ADDSCAN(TMPC(5),TMPC(6),INT(TMPC(7)))
 
           ELSEIF(TMPC(9).EQ.4) THEN
              IF(INDEX(CHUNK,LSQB).EQ.0)THEN
@@ -132,7 +137,6 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
           ENDIF
             CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0
      1       .OR.INDEX(CHUNK,'S').NE.0,LOPT)
-            IF(TMPC(7).NE.0)CALL ADDSCAN(TMPC(6),TMPC(7),INT(TMPC(8)))
           ENDIF
 
 
@@ -172,10 +176,9 @@ C     FIRST INFO ON THIS LINE IS A BOND ANGLE
                 RN(:)=''
             ELSE
                 RN(1:)=CHUNK(INDEX(CHUNK,LSQB):)
-          ENDIF
+            ENDIF
             CALL ADDANGLE(TMPC,RN,
      1       INDEX(CHUNK,'F').NE.0.OR.INDEX(CHUNK,'S').NE.0,LOPT)
-            IF(TMPC(6).NE.0)CALL ADDSCAN(TMPC(5),TMPC(6),INT(TMPC(7)))
           ELSEIF(TMPC(9).EQ.3) THEN
             IF(INDEX(CHUNK,LSQB).EQ.0)THEN
                 RN(:)=''
@@ -184,9 +187,6 @@ C     FIRST INFO ON THIS LINE IS A BOND ANGLE
            ENDIF
             CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0
      1       .OR.INDEX(CHUNK,'S').NE.0,LOPT)
-            IF(TMPC(7).NE.0)CALL ADDSCAN(TMPC(6),TMPC(7),INT(TMPC(8)))
-
-
           ENDIF
 
 
@@ -229,7 +229,6 @@ C     FIRST INFO ON THIS LINE IS A DIHEDRAL ANGLE
           ENDIF
             CALL ADDDIHDR(TMPC,RN,INDEX(CHUNK,'F').NE.0
      1       .OR.INDEX(CHUNK,'S').NE.0,LOPT)
-            IF(TMPC(7).NE.0)CALL ADDSCAN(TMPC(6),TMPC(7),INT(TMPC(8)))
           ENDIF
       END DO
 
@@ -417,10 +416,10 @@ C       End Laurent
       INTEGER TRLB, ROTB, ROTD, ATMS, ICONXN(6,NUMATM),NVALS
       LOGICAL APPLIED
       DOUBLE PRECISION VALS(3*NUMATM)
-      INTEGER I,J, CONX(3),LOPT(3,NUMATM)
+      INTEGER I,J, CONX(4),LOPT(3,NUMATM)
       INTEGER :: GETLENGTH
       CHARACTER (LEN=MAXCHAR) :: RN
-      DOUBLE PRECISION CNX(4)
+      DOUBLE PRECISION CNX(9)
       LOGICAL F
       CONX(1)=PRT(INT(CNX(1)))
       CONX(2)=PRT(INT(CNX(2)))
@@ -441,10 +440,13 @@ C       End Laurent
         CONX(2)=CONX(3)
       ENDIF
 
+
       IF(ICONXN(1,CONX(2)).EQ.0.OR.ICONXN(1,CONX(2)).EQ.CONX(1))THEN
             ICONXN(1,CONX(2))=CONX(1)
             ICONXN(4,CONX(2))=1
             LOPT(1,CONX(2))=0
+      IF(CNX(5).NE.0)CALL ADDSCAN(CNX(4),CNX(5),INT(CNX(6))
+     1       ,CONX(2),1)
       ELSE
       GOTO 330
       ENDIF
@@ -469,7 +471,7 @@ C       End Laurent
       DOUBLE PRECISION VALS(3*NUMATM)
       INTEGER I,J, CONX(4), PERMUTE,LOPT(3,NUMATM)
       INTEGER :: GETLENGTH
-      DOUBLE PRECISION CNX(5)
+      DOUBLE PRECISION CNX(9)
       LOGICAL F
 
       CONX(1)=PRT(INT(CNX(1)))
@@ -500,7 +502,8 @@ C       End Laurent
         ENDIF
         ICONXN(5,CONX(3))=1
         LOPT(2,CONX(3))=0
-
+       IF(CNX(6).NE.0)CALL ADDSCAN(CNX(5),CNX(6),INT(CNX(7)),
+     1       CONX(3),2)
 
         RETURN
       ENDIF
@@ -527,6 +530,8 @@ C       End Laurent
       ELSE
         GOTO 10
       ENDIF
+       IF(CNX(6).NE.0)CALL ADDSCAN(CNX(5),CNX(6),INT(CNX(7)),
+     1       CONX(3),2)
       RETURN
    20 WRITE(6,'(A)')'Impossible Gemoetric Constraints:', RN
       STOP
@@ -545,7 +550,7 @@ C       End Laurent
       DOUBLE PRECISION VALS(3*NUMATM)
       INTEGER I,J, CONX(5), PERMUTE,LOPT(3,NUMATM)
       INTEGER :: GETLENGTH
-      DOUBLE PRECISION CNX(6)
+      DOUBLE PRECISION CNX(9)
       LOGICAL F
       CONX(1)=PRT(INT(CNX(1)))
       CONX(2)=PRT(INT(CNX(2)))
@@ -573,6 +578,8 @@ C       End Laurent
         ICONXN(1,CONX(4))=CONX(3)
         ICONXN(6,CONX(4))=1
         LOPT(3,CONX(4))=0
+      IF(CNX(7).NE.0)CALL ADDSCAN(CNX(6),CNX(7),INT(CNX(8)),
+     1       CONX(4),3)
         RETURN
       ENDIF
 
@@ -600,6 +607,8 @@ C       End Laurent
         ELSE
           GOTO 10
       ENDIF
+      IF(CNX(7).NE.0)CALL ADDSCAN(CNX(6),CNX(7),INT(CNX(8)),
+     1      CONX(4),3)
       RETURN
    20 WRITE(6,'(A)')'Impossible Gemoetric Constraints:', RN
       STOP
@@ -684,7 +693,7 @@ C       THINGS BECOME SOMEWHAT HECTIC IF WE ARE DEALING WITH THE FIRST TWO ATOMS
       COMMON /PERMUTE / PR,PRT
       COMMON /DEPND / DEP,MINDEP,NEXTDEP
       COMMON /LIN / PI,PJ,PK
-      INTEGER PI,PJ,PK
+      INTEGER PI,PJ,PK,TPI,TPJ,TPK
       INTEGER PR(NUMATM),PRT(NUMATM)
       INTEGER NBKSPC, INQ(NUMATM), DEP(NUMATM)
       LOGICAL LEADSP
@@ -833,8 +842,17 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
             CONX(1)=INT(TMPC(1))
             CONX(2)=INT(TMPC(2))
             CONX(3)=INT(TMPC(3))
-            IF(ABS(TMPC(5)-180.D0).LT.1.D-3)
-     1       CALL INITPEN(CONX(1),CONX(2),CONX(3))
+            IF(ABS(TMPC(5)-180.D0).LT.1.D-3)THEN
+                IF(PI.NE.0)THEN
+                    WRITE(6,'(A)')'ONLY ONE LINEARIZATION ALLOWED'
+                    STOP
+                ENDIF
+                PI=CONX(1)
+                PJ=CONX(2)
+                PK=CONX(3)
+            ENDIF
+
+
 
           ENDIF
 
@@ -878,46 +896,46 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
 
       IF(PI.NE.0)THEN
         MOVE=.TRUE.
-        IF(PI.NE.1)THEN
+        ONE=PRT(PI)
+        IF(ONE.NE.1)THEN
 
             DO I=PI-1,1,-1
-                MOVE=DEP(I).EQ.O.OR.NINARR(DEP(I),PRT(PI))
+                MOVE=DEP(I).EQ.O.OR.NINARR(DEP(I),PRT(ONE))
                 IF(.NOT.MOVE)THEN
                     EXIT
                 ENDIF
             ENDDO
             IF(MOVE)THEN
-            TMPDEP=DEP(PI)
+            TMPDEP=DEP(ONE)
 
-            DO I=PI,2,-1
+            DO I=PJ,2,-1
                 PR(I)=PR(I-1)
                 DEP(I)=DEP(I-1)
             ENDDO
             DEP(1)=TMPDEP
-            PR(1)=PI
+            PR(1)=ONE
             CALL CALCPRT()
             ENDIF
-            PI=PRT(PI)
          ENDIF
-!         IF(MOVE)THEN
-!            TWO=MIN(PRT(PJ),PRT(PK))
-!            DO I=TWO-1,2,-1
-!                MOVE=DEP(I).EQ.O.OR.NINARR(DEP(I),PRT(TWO))
-!                IF(.NOT.MOVE)THEN
-!                    EXIT
-!                ENDIF
-!            ENDDO
-!            IF(MOVE)THEN
-!                TMPDEP=DEP(TWO)
-!                TMPIND=PR(TWO)
-!                DO I=TWO,3,-1
-!                    PR(I)=PR(I-1)
-!                    DEP(I)=DEP(I-1)
-!                ENDDO
-!                DEP(2)=TMPDEP
-!                PR(2)=TMPIND
-!                CALL CALCPRT()
-!                ENDIF
+         IF(MOVE)THEN
+            TWO=PRT(PJ)
+            DO I=TWO-1,2,-1
+                MOVE=DEP(I).EQ.O.OR.NINARR(DEP(I),PRT(TWO))
+                IF(.NOT.MOVE)THEN
+                    EXIT
+                ENDIF
+            ENDDO
+            IF(MOVE)THEN
+                TMPDEP=DEP(TWO)
+                TMPIND=PR(TWO)
+                DO I=TWO,3,-1
+                    PR(I)=PR(I-1)
+                    DEP(I)=DEP(I-1)
+                ENDDO
+                DEP(2)=TMPDEP
+                PR(2)=TMPIND
+                CALL CALCPRT()
+                ENDIF
 !                IF(MOVE)THEN
 !                    THREE=MAX(PRT(PJ),PRT(PK))
 !                    DO I=THREE-1,3,-1
@@ -937,10 +955,9 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
 !                    PR(3)=TMPIND
 !                    CALL CALCPRT()
 !                ENDIF
-!            ENDIF
+            ENDIF
             TMPDEP=PI
             PI=0
-            CALL INITPEN(PRT(TMPDEP),PRT(PJ),PRT(PK))
 !         ENDIF
       ENDIF
 

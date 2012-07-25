@@ -57,6 +57,10 @@ C       Laurent Modification
       INTEGER PI,PJ,PK
       INTEGER PR(NUMATM),PRT(NUMATM)
       DOUBLE PRECISION ATOT(3,3)
+      COMMON /SCANR / ISCAN,NSCAN,STEPS,STARTS,LIMS,NDIM,IVALS,REDSCN
+      INTEGER ISCAN,NSCAN,IVALS(2,3*NUMATM),NDIM
+      DOUBLE PRECISION STEPS(3*NUMATM),STARTS(3*NUMATM),LIMS(3*NUMATM)
+      LOGICAL REDSCN
 C       Laurent end
 ************************************************************************
 *
@@ -184,6 +188,7 @@ C
          CALL GEOUT(1)
          STOP
       ENDIF
+
 
       WRITE(6,'(////10X,''FINAL HEAT OF FORMATION ='',F17.5,'' KCAL''
      1)')FUNCT-PENRGY
@@ -338,6 +343,9 @@ C    PATAS
    20 XPARAM(I)=GEO(LOC(2,I),LOC(1,I))
 
       CALL GMETRY(GEO,COORD)
+C       LAURENT MODIFICATION
+        CALL WRITESCANSTATE(COORD)
+C       END LAURENT
 
       IF(PRTGRA)THEN
          WRITE(6,'(///7X,''FINAL  POINT  AND  DERIVATIVES'',/)')
@@ -407,7 +415,7 @@ C#     +STATUS='OLD')
 C#      WRITE(6,'(A)') 'Error opening SYBYL MOPAC output'
 C#  32  CONTINUE
       ENDIF
-      IF(NORBS.GT.0)THEN
+      IF(NORBS.GT.0.AND..NOT.REDSCN)THEN
       CALL SYMTRZ(COORD,C,NORBS,NORBS,.FALSE.,.TRUE.)
       WRITE(6,'(//''      MOLECULAR POINT GROUP   :   '',A4)')NAME
          IF (INDEX(KEYWRD,'VECT') .NE. 0) THEN

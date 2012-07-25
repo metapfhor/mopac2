@@ -1,5 +1,5 @@
       SUBROUTINE GETDAT
-      CHARACTER*80 LINE, GETNAM
+      CHARACTER*80 LINE, GETNAM, FILENAME
 ************************************************************************
 *
 *   GETDAT READS ALL THE DATA IN ON CHANNEL 2, AND WRITES IT TO SCRATCH
@@ -7,6 +7,8 @@
 *   THE JOB STARTS.
 *
 ************************************************************************
+      INTEGER STRLEN
+      LOGICAL SCANING
       DATA I/0/
       SAVE I
 C#      WRITE(6,*)GETNAM('FOR005')
@@ -28,4 +30,10 @@ C
          STOP
       ENDIF
       CLOSE (2)
+      FILENAME=GETNAM('FOR005')
+      IF(INDEX(FILENAME,'.scan').EQ.STRLEN(FILENAME)-4)THEN
+            CALL READSCANSTATE()
+            CALL STEPSCAN()
+      ENDIF
+
       END

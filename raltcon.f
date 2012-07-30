@@ -527,24 +527,41 @@ C       End Laurent
       INTEGER :: GETLENGTH
       DOUBLE PRECISION CNX(9)
       LOGICAL F
+      IF(ABS(CNX(5)-180.D0).LT.1D-3)THEN
+          CONX(1)=PRT(INT(CNX(1)))
+          CONX(2)=PRT(INT(CNX(2)))
+          CONX(3)=PRT(INT(CNX(3)))
 
-      CONX(1)=PRT(INT(CNX(1)))
-      CONX(2)=PRT(INT(CNX(2)))
-      CONX(3)=PRT(INT(CNX(3)))
 
 
+          BANGL(NANGL+1)=CONX(1)
+          BANGL(NANGL+2)=CONX(2)
+          BANGL(NANGL+3)=CONX(3)
+          NVALS=NVALS+1
 
-      BANGL(NANGL+1)=CONX(1)
-      BANGL(NANGL+2)=CONX(2)
-      BANGL(NANGL+3)=CONX(3)
-      NVALS=NVALS+1
+          BANGL(NANGL+4)=NVALS
+          VALS(NVALS)=CNX(5)
+          BANGL(NANGL+5)=NATOM+1
+          CALL ADDRANGEARR(ATOMS,RN,CONX(3),NATOM)
+          BANGL(NANGL+6)=NATOM
+          NANGL=NANGL+6
+      ELSE
+          CONX(1)=PRT(INT(CNX(1)))
+          CONX(2)=PRT(INT(CNX(2)))
+          CONX(3)=PRT(INT(CNX(3)))
+          BANGL(NANGL+1)=CONX(1)
+          BANGL(NANGL+2)=CONX(3)
+          BANGL(NANGL+3)=CONX(2)
+          NVALS=NVALS+1
 
-      BANGL(NANGL+4)=NVALS
-      VALS(NVALS)=CNX(5)
-      BANGL(NANGL+5)=NATOM+1
-      CALL ADDRANGEARR(ATOMS,RN,CONX(3),NATOM)
-      BANGL(NANGL+6)=NATOM
-      NANGL=NANGL+6
+          BANGL(NANGL+4)=NVALS
+          VALS(NVALS)=0
+          BANGL(NANGL+5)=NATOM+1
+          ATOMS(NATOM+1)=CONX(2)
+          NATOM=NATOM+1
+          BANGL(NANGL+6)=NATOM
+          NANGL=NANGL+6
+      ENDIF
       IF(F)THEN
       IF((ICONXN(2,CONX(3)).EQ.0.OR.ICONXN(2,CONX(3)).EQ.CONX(1))
      1.AND.(ICONXN(1,CONX(3)).EQ.0.OR.ICONXN(1,CONX(3)).EQ.CONX(2)))THEN

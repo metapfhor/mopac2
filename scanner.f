@@ -231,7 +231,7 @@ C       AXES
       CLOSE(26)
       END
 
-      SUBROUTINE QKXYZINT(XYZ,NATOMS,NA,NB,NC,GEO)
+      SUBROUTINE QKXYZINT(XYZ,NUMAT,NA,NB,NC,GEO)
 
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INCLUDE 'SIZES'
@@ -291,11 +291,7 @@ C             Laurent Modification: added
 
       IF(INDEX(KEYWRD,'ALTCON').NE.0.AND..NOT.APPLIED
      1 .AND.NATOM.NE.0)THEN
-        IF(.NOT.PRMTD)THEN
-            CALL PERATMS(XYZ)
-            PRMTD=.TRUE.
-        ENDIF
-        CALL AALTCON(XYZ,DEGREE)
+        CALL AALTCON(XYZ)
         APPLIED=.TRUE.
       ENDIF
 

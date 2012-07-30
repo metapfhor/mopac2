@@ -67,7 +67,7 @@ C       as well as a translation vector in order to return to the input coords
       DOUBLE PRECISION VALS(3*NUMATM)
       LOGICAL REDSCN
       INTEGER DESC
-      DATA DESC,ISCAN,NSCAN,NDIM,REDSCN /2,0,1,0,.FALSE./
+      DATA DESC,ISCAN,NSCAN,NDIM,REDSCN /2,1,1,0,.FALSE./
 
       DATA NTRANS,NANGL,NDIHD,NATOM,NVALS,APPLIED /0,0,0,0,0,.FALSE./
 C       end of Laurent Modification
@@ -112,9 +112,14 @@ C   CLOSE UNIT 6 IN CASE IT WAS ALREADY PRE-ASSIGNED
 C
           CLOSE (6)
 C       Laurent: Changed status from old to replace to avoid unecessary errors
-          OPEN(UNIT=6,FILE=GETNAM('FOR006'),STATUS='REPLACE')
+          IF(REDSCN)THEN
+             OPEN(UNIT=6,FILE=GETNAM('FOR006'),ACCESS='APPEND')
+          ELSE
+            OPEN(UNIT=6,FILE=GETNAM('FOR006'),STATUS='REPLACE')
+            REWIND 6
+          ENDIF
 C       Laurent End
-          REWIND 6
+
 
 C#      CALL TIMER('FIRST LINE')
       NUMCAL=0

@@ -722,3 +722,244 @@ C   Laurent Modification
  1700 FORMAT('*  ALTCON    - USING ALTERNATIVE GEOMETRIC CONSTRAINTS')
 C   End Laurent
       END
+
+      SUBROUTINE RDKEY(KEYWRD)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      INCLUDE 'SIZES'
+      CHARACTER*241 KEYWRD, ALLKEY
+***********************************************************************
+*
+*  ESSENTIALLY WRTKEY WITH NONE OF THE WRITE STATEMENTS
+*
+***********************************************************************
+      COMMON /NUMCAL/ NUMCAL
+      COMMON /TIMDMP/ TLEFT, TDUMP
+      LOGICAL UHF, TRIP, BIRAD, EXCI, CI, MYWORD
+      LOGICAL AM1, MNDO, MINDO3, PM3
+C**********************************************************************
+C* SHIHAO'S MODIFICATION START
+C* Added:
+      LOGICAL PDG,MDG
+C* SHIHAO'S MODIFICATION END
+C**********************************************************************
+      CHARACTER CH*1, CHRONO*7
+      SAVE AM1, MNDO, MINDO3
+      DATA AM1, MNDO, MINDO3, PM3 /4*.FALSE./
+      ALLKEY=KEYWRD
+C    DUMMY IF STATEMENT TO REMOVE AMPERSAND AND PLUS SIGNS, IF PRESENT
+      IF(MYWORD(ALLKEY(160:),' SETUP'))I=1
+      IF(MYWORD(ALLKEY,'&'))I=2
+
+      IF (MYWORD(ALLKEY,' EXTE') ) THEN
+         I=INDEX(KEYWRD,' EXTE')
+         J=INDEX(KEYWRD(I:),'=')+I
+         I=INDEX(KEYWRD(J:),' ')+J-1
+
+      ENDIF
+      MAXGEO=0
+
+
+C       End Laurent
+
+
+C
+C                       KEYWORDS ADDED FOR PMEP BY BINGZE WANG AUG 1993
+C
+
+
+      IF (MYWORD(ALLKEY,'IRC=') ) THEN
+         MAXGEO=1
+      ELSEIF (MYWORD(ALLKEY,'IRC') ) THEN
+         MAXGEO=1
+      ENDIF
+
+      UHF=(MYWORD(ALLKEY,'UHF') )
+
+      BIRAD=(MYWORD(ALLKEY,'BIRAD') )
+
+      EXCI=(MYWORD(ALLKEY,'EXCITED') )
+
+      TRIP=(MYWORD(ALLKEY,'TRIP') )
+
+
+      IF(MYWORD(ALLKEY,'OPEN('))THEN
+         I=INDEX(KEYWRD,'OPEN(')
+         IELEC=READA(KEYWRD,I)
+         ILEVEL=READA(KEYWRD,I+7)
+      ENDIF
+
+      IF(MYWORD(ALLKEY,'DRC='))THEN
+         MAXGEO=1
+
+      ELSEIF (MYWORD(ALLKEY,' DRC') ) THEN
+         MAXGEO=1
+
+      ENDIF
+      CHRONO='SECONDS'
+      TIME=1
+      IF(MYWORD(ALLKEY,' T=')) THEN
+         I=INDEX(KEYWRD,' T=')
+         TLEFT=READA(KEYWRD,I)
+         DO 20 J=I+3,241
+            IF( J.EQ.241.OR.KEYWRD(J+1:J+1).EQ.' ') THEN
+               CH=KEYWRD(J:J)
+               IF( CH .EQ. 'M') CHRONO='MINUTES'
+               IF( CH .EQ. 'M') TIME=60
+               IF( CH .EQ. 'H') CHRONO='HOURS'
+               IF( CH .EQ. 'H') TIME=3600
+               IF( CH .EQ. 'D') CHRONO='DAYS'
+               IF( CH .EQ. 'D') TIME=86400
+               GOTO 30
+            ENDIF
+   20    CONTINUE
+   30    CONTINUE
+
+         TLEFT=TLEFT*TIME
+      ELSEIF(NUMCAL.EQ.1)THEN
+         TLEFT=MAXTIM
+      ENDIF
+      TIME=1
+      CHRONO='SECONDS'
+      IF(MYWORD(ALLKEY,' DUMP')) THEN
+         I=INDEX(KEYWRD,' DUMP')
+         TDUMP=READA(KEYWRD,I)
+         DO 40 J=I+6,241
+            IF( J.EQ.241.OR.KEYWRD(J+1:J+1).EQ.' ') THEN
+               CH=KEYWRD(J:J)
+               IF( CH .EQ. 'M') CHRONO='MINUTES'
+               IF( CH .EQ. 'M') TIME=60.D0
+               IF( CH .EQ. 'H') CHRONO='HOURS'
+               IF( CH .EQ. 'H') TIME=3600.D0
+               IF( CH .EQ. 'D') CHRONO='DAYS'
+               IF( CH .EQ. 'D') TIME=86400.D0
+               GOTO 50
+            ENDIF
+   40    CONTINUE
+   50    CONTINUE
+
+         TDUMP=TDUMP*TIME
+      ELSEIF(NUMCAL.EQ.1)THEN
+         TDUMP=MAXDMP
+      ENDIF
+      IF (MYWORD(ALLKEY,'1SCF') ) THEN
+         IF(INDEX(KEYWRD,'RESTART').EQ.0)MAXGEO=MAXGEO+1
+      ENDIF
+      CI=MYWORD(ALLKEY,'C.I.')
+
+      IF (MYWORD(ALLKEY,' FORCE') ) THEN
+         MAXGEO=MAXGEO+1
+      ENDIF
+      IF (MYWORD(ALLKEY,' EF')) THEN
+         MAXGEO=MAXGEO+1
+      ENDIF
+      IF (MYWORD(ALLKEY,' TS')) THEN
+         MAXGEO=MAXGEO+1
+      ENDIF
+      METHOD=0
+      IF (MYWORD(ALLKEY,'MINDO') ) THEN
+         MINDO3=.TRUE.
+         METHOD=1
+      ENDIF
+      IF (MYWORD(ALLKEY,'AM1') ) THEN
+         AM1=.TRUE.
+         METHOD=METHOD+1
+      ENDIF
+      IF (MYWORD(ALLKEY,'PM3') ) THEN
+         PM3=.TRUE.
+         METHOD=METHOD+1
+      ENDIF
+C**********************************************************************
+C* SHIHAO'S MODIFICATION START
+C* Added:
+      IF (MYWORD(ALLKEY,'PDG') ) THEN
+         PDG=.TRUE.
+         METHOD=METHOD+1
+      ENDIF
+      IF (MYWORD(ALLKEY,'MDG') ) THEN
+         MDG=.TRUE.
+         METHOD=METHOD+1
+      ENDIF
+C* SHIHAO'S MODIFICATION END
+C**********************************************************************
+      IF (MYWORD(ALLKEY,'MNDO') ) THEN
+         MNDO=.TRUE.
+         METHOD=METHOD+1
+      ENDIF
+
+      IF (MYWORD(ALLKEY,'SIGMA') ) THEN
+         MAXGEO=MAXGEO+1
+      ENDIF
+      IF (MYWORD(ALLKEY,'NLLSQ') ) THEN
+         MAXGEO=MAXGEO+1
+      ENDIF
+      IF (MYWORD(ALLKEY,'SADDLE') ) THEN
+         MAXGEO=MAXGEO+1
+      ENDIF
+      IF (MYWORD(ALLKEY,' POINT1')  )THEN
+         IP1=READA(KEYWRD,INDEX(KEYWRD,'POINT1')+7)
+      ENDIF
+      IF (MYWORD(ALLKEY,' POINT2')  )THEN
+         IP2=READA(KEYWRD,INDEX(KEYWRD,'POINT2')+7)
+      ENDIF
+
+      IF (MYWORD(ALLKEY,' POINT')  )THEN
+         IP=READA(KEYWRD,INDEX(KEYWRD,'POINT')+6)
+      ENDIF
+
+      IF(UHF)THEN
+         IF(BIRAD.OR.EXCI.OR.CI)THEN
+
+            GOTO 70
+         ENDIF
+      ELSE
+         IF(EXCI.AND. TRIP) THEN
+            GOTO 70
+         ENDIF
+      ENDIF
+      IF (INDEX(KEYWRD,'T-PRIO').NE.0.AND.
+     1INDEX(KEYWRD,'DRC').EQ.0) THEN
+
+         GOTO 70
+      ENDIF
+      IF ( METHOD .GT. 1) THEN
+
+         GOTO 70
+      ENDIF
+C     PATAS
+
+
+      IF(MAXGEO.GT.1)THEN
+         WRITE(6,'(//10X,''MORE THAN ONE GEOMETRY OPTION HAS BEEN '',
+     1''SPECIFIED'',/10X,
+     2''CONFLICT MUST BE RESOLVED BEFORE JOB WILL RUN'')')
+         STOP
+      ENDIF
+      IF(INDEX(KEYWRD,'MULLIK').NE.0.AND.UHF)THEN
+         WRITE(6,'(A)')' MULLIKEN POPULATION NOT AVAILABLE WITH UHF'
+         STOP
+      ENDIF
+      IF(ALLKEY.NE.' ')THEN
+         J=0
+         DO 60 I=1,240
+            IF(ALLKEY(I:I).NE.' '.OR.ALLKEY(I:I+1).NE.'  ')THEN
+               J=J+1
+               CH=ALLKEY(I:I)
+               ALLKEY(J:J)=CH
+            ENDIF
+   60    CONTINUE
+         IF(ALLKEY(241:241).NE.' ')THEN
+            J=J+1
+            CH=ALLKEY(241:241)
+            ALLKEY(J:J)=CH
+         ENDIF
+
+      ENDIF
+
+      RETURN
+   70 WRITE(6,'(//10X,'' CALCULATION ABANDONED, SORRY!'')')
+      STOP
+C ***********************************************************
+C ***********************************************************
+
+      END
+

@@ -188,10 +188,11 @@ C
          CALL GEOUT(1)
          STOP
       ENDIF
-
-
+C       LAURENT MODIFICATION
+      IF(NSCAN.GT.1)CALL WRTENERGY(FUNCT)
+C       END LAURENT
       WRITE(6,'(////10X,''FINAL HEAT OF FORMATION ='',F17.5,'' KCAL''
-     1)')FUNCT-PENRGY
+     1)')FUNCT
       IF(LATOM.EQ.0) WRITE(6,'(/)')
       WRITE(6,'(    10X,''EQUILIBRIUM ENERGY      ='',F17.5,'' KCAL''
      1)')EQLBR

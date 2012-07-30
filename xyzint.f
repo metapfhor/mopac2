@@ -60,7 +60,7 @@ C       Laurent Modification: Recenter on the first atom
             CALL PERATMS(XYZ)
             PRMTD=.TRUE.
         ENDIF
-        CALL AALTCON(XYZ,DEGREE)
+        CALL AALTCON(XYZ)
         APPLIED=.TRUE.
       ENDIF
 

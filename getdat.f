@@ -7,6 +7,12 @@
 *   THE JOB STARTS.
 *
 ************************************************************************
+C       LAURENT MODIFICATION
+      COMMON /SCANR / ISCAN,NSCAN,STEPS,STARTS,LIMS,NDIM,IVALS,REDSCN
+      INTEGER ISCAN,NSCAN,IVALS(3*NUMATM),NDIM
+      DOUBLE PRECISION STEPS(3*NUMATM),STARTS(3*NUMATM),LIMS(3*NUMATM)
+      LOGICAL REDSCN
+C       END LAURENT
       INTEGER STRLEN
       LOGICAL SCANING
       DATA I/0/
@@ -30,10 +36,14 @@ C
          STOP
       ENDIF
       CLOSE (2)
+C       LAURENT MODIFICATION
       FILENAME=GETNAM('FOR005')
       IF(INDEX(FILENAME,'.scan').EQ.STRLEN(FILENAME)-4)THEN
             CALL READSCANSTATE()
-            CALL STEPSCAN()
+            IF(NSCAN.GT.1)THEN
+                CALL STEPSCAN()
+            ENDIF
       ENDIF
+C       END LAURENT
 
       END

@@ -668,7 +668,6 @@ C       Laurent end
             GEO(2,J)=COORD(2,J)-SUMY
   260    GEO(3,J)=COORD(3,J)-SUMZ
          NA(1)=99
-C       Laurent: Redefines optimaztions flags : no it doesnt!
          J=0
          NVAR=0
          DO 280 I=1,NATOMS

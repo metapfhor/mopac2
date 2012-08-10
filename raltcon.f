@@ -18,7 +18,8 @@
       LOGICAL APPLIED
       DOUBLE PRECISION VALS(3*NUMATM)
       COMMON /PERMUTE / PR,PRT
-      INTEGER PR(NUMATM),PRT(NUMATM)
+      COMMON /LIN / PI,PJ,PK
+      INTEGER PR(NUMATM),PRT(NUMATM),PI,PJ,PK
       LOGICAL LEADSP
       CHARACTER (LEN=MAXCHAR) :: LINE
       CHARACTER (LEN=MAXCHAR) :: CHUNK
@@ -124,8 +125,9 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
             ELSE
                 RN(1:)=CHUNK(INDEX(CHUNK,LSQB):)
           ENDIF
-            CALL ADDANGLE(TMPC,RN,INDEX(CHUNK,'F').NE.0
-     1       .OR.INDEX(CHUNK,'S').NE.0,LOPT)
+          IF(INT(TMPC(1)).NE.PI)
+     1       CALL ADDANGLE(TMPC,RN,INDEX(CHUNK,'F').NE.0
+     2       .OR.INDEX(CHUNK,'S').NE.0,LOPT)
 
           ELSEIF(TMPC(9).EQ.4) THEN
              IF(INDEX(CHUNK,LSQB).EQ.0)THEN
@@ -175,8 +177,9 @@ C     FIRST INFO ON THIS LINE IS A BOND ANGLE
             ELSE
                 RN(1:)=CHUNK(INDEX(CHUNK,LSQB):)
             ENDIF
-            CALL ADDANGLE(TMPC,RN,
-     1       INDEX(CHUNK,'F').NE.0.OR.INDEX(CHUNK,'S').NE.0,LOPT)
+            IF(INT(TMPC(1)).NE.PI)
+     1       CALL ADDANGLE(TMPC,RN,
+     2       INDEX(CHUNK,'F').NE.0.OR.INDEX(CHUNK,'S').NE.0,LOPT)
           ELSEIF(TMPC(9).EQ.3) THEN
             IF(INDEX(CHUNK,LSQB).EQ.0)THEN
                 RN(:)=''
@@ -526,7 +529,7 @@ C       End Laurent
       INTEGER I,J, CONX(4), PERMUTE,LOPT(3,NUMATM)
       INTEGER :: GETLENGTH
       DOUBLE PRECISION CNX(9)
-      LOGICAL F
+      LOGICAL F5
       IF(ABS(CNX(5)-180.D0).LT.1D-3)THEN
           CONX(1)=PRT(INT(CNX(1)))
           CONX(2)=PRT(INT(CNX(2)))
@@ -690,78 +693,6 @@ C       End Laurent
       STOP
       RETURN
       ENDIF
-      END
-
-      SUBROUTINE INITPEN(I,J,K)
-      INCLUDE 'SIZES'
-      COMMON /LIN / PI,PJ,PK
-      INTEGER I,J,K,PI,PJ,PK,II
-      COMMON /KEYWRD/ KEYWRD
-      CHARACTER KEYWRD*241
-      DOUBLE PRECISION :: READA
-      DATA PI,PJ,PK,KF,POW /0,0,0,1.D1,2.D0/
-      II=INDEX(KEYWRD,"KF=")
-      IF(INDEX(KEYWRD,"KF=").NE.0)THEN
-        KF=READA(KEYWRD,INDEX(KEYWRD,"KF=")+3)
-      ENDIF
-      KF=0
-      IF(INDEX(KEYWRD,"PEN-POW=").NE.0)THEN
-        POW=READA(KEYWRD,INDEX(KEYWRD,"PEN-POW=")+8)
-      ENDIF
-
-      IF(PI.NE.0)THEN
-        WRITE(6,'(A)')'ONLY ONE LINEARIZATION ALLOWED'
-      ENDIF
-      IF(I.EQ.K.OR.I.EQ.J.OR.J.EQ.K)THEN
-        WRITE(6,'(A,3I5.2)')'IMPOSSIBLE LINEARIZATION',I,J,K
-        STOP
-      ELSE
-C       THINGS BECOME SOMEWHAT HECTIC IF WE ARE DEALING WITH THE FIRST TWO ATOMS
-          IF(I.EQ.1.OR.J.EQ.1.OR.K.EQ.1)THEN
-              IF(I.EQ.1)THEN
-                PI=I
-                IF(J.EQ.2)THEN
-                    PJ=J
-                    PK=K
-                ELSE
-                     PJ=K
-                     PK=J
-                ENDIF
-              ENDIF
-              IF(J.EQ.1)THEN
-                  PI=J
-                  IF(I.EQ.2)THEN
-                      PJ=I
-                      PK=K
-                  ELSE
-                     PJ=K
-                     PK=I
-                  ENDIF
-              ENDIF
-              IF(K.EQ.1)THEN
-                  PI=K
-                  IF(I.EQ.2)THEN
-                      PJ=I
-                      PK=J
-                  ELSE
-                      IF(J.EQ.2)THEN
-                          PJ=J
-                          PK=I
-                      ELSE
-                          PJ=I
-                          PK=J
-                      ENDIF
-                  ENDIF
-              ENDIF
-          ELSE
-              PI=I
-              PJ=J
-              PK=K
-          ENDIF
-      ENDIF
-
-
-
       END
 
       SUBROUTINE BLDPERM(IREAD)

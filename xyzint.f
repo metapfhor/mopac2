@@ -36,8 +36,9 @@ C             Laurent Modification: added
      2         NATOM,ICONXN(6,NUMATM),NVALS
       LOGICAL APPLIED
       DOUBLE PRECISION VALS(3*NUMATM)
+      COMMON /LIN / PI,PJ,PK
       COMMON /PERMUTE /PR,PRT
-      INTEGER PR(NUMATM),PRT(NUMATM)
+      INTEGER PR(NUMATM),PRT(NUMATM),PI,PJ,PK
       LOGICAL PRMTD
       DOUBLE PRECISION ATOT(3,3)
       DOUBlE PRECISION DX, DY, DZ
@@ -55,7 +56,7 @@ C       Laurent Modification: Recenter on the first atom
 
 
       IF(INDEX(KEYWRD,'ALTCON').NE.0.AND..NOT.APPLIED
-     1 .AND.NATOM.NE.0)THEN
+     1 .AND.(NATOM.NE.0.OR.PI.NE.0))THEN
         IF(.NOT.PRMTD)THEN
             CALL PERATMS(XYZ)
             PRMTD=.TRUE.

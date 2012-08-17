@@ -40,6 +40,16 @@
 
       CALL BLDPERM(IREAD)
 
+      IF(PI.NE.0)THEN
+        ICONXN(2,PRT(PK))=PRT(PI)
+        ICONXN(1,PRT(PK))=PRT(PJ)
+        ICONXN(3,PRT(PK))=3
+        LOPT(2,PRT(PK))=0
+        LOPT(3,PRT(PK))=0
+      ENDIF
+
+
+
    10 READ(IREAD,'(A)',END=140)LINE
       IF(LINE.EQ.' ') GOTO 130
 
@@ -529,8 +539,7 @@ C       End Laurent
       INTEGER I,J, CONX(4), PERMUTE,LOPT(3,NUMATM)
       INTEGER :: GETLENGTH
       DOUBLE PRECISION CNX(9)
-      LOGICAL F5
-      IF(ABS(CNX(5)-180.D0).LT.1D-3)THEN
+      LOGICAL F
           CONX(1)=PRT(INT(CNX(1)))
           CONX(2)=PRT(INT(CNX(2)))
           CONX(3)=PRT(INT(CNX(3)))
@@ -548,32 +557,13 @@ C       End Laurent
           CALL ADDRANGEARR(ATOMS,RN,CONX(3),NATOM)
           BANGL(NANGL+6)=NATOM
           NANGL=NANGL+6
-      ELSE
-          CONX(1)=PRT(INT(CNX(1)))
-          CONX(2)=PRT(INT(CNX(2)))
-          CONX(3)=PRT(INT(CNX(3)))
-          BANGL(NANGL+1)=CONX(1)
-          BANGL(NANGL+2)=CONX(3)
-          BANGL(NANGL+3)=CONX(2)
-          NVALS=NVALS+1
 
-          BANGL(NANGL+4)=NVALS
-          VALS(NVALS)=0
-          BANGL(NANGL+5)=NATOM+1
-          ATOMS(NATOM+1)=CONX(2)
-          NATOM=NATOM+1
-          BANGL(NANGL+6)=NATOM
-          NANGL=NANGL+6
-      ENDIF
       IF(F)THEN
       IF((ICONXN(2,CONX(3)).EQ.0.OR.ICONXN(2,CONX(3)).EQ.CONX(1))
      1.AND.(ICONXN(1,CONX(3)).EQ.0.OR.ICONXN(1,CONX(3)).EQ.CONX(2)))THEN
         ICONXN(2,CONX(3))=CONX(1)
         ICONXN(1,CONX(3))=CONX(2)
         ICONXN(4,CONX(3))=1
-        IF(ABS(CNX(5)-180.D0).LT.1D-3)THEN
-            LOPT(3,CONX(3))=0
-        ENDIF
         ICONXN(5,CONX(3))=1
         LOPT(2,CONX(3))=0
        IF(CNX(6).NE.0)CALL ADDSCAN(CNX(5),CNX(6),INT(CNX(7)),
@@ -598,8 +588,8 @@ C       End Laurent
         ICONXN(2,CONX(3))=CONX(1)
         ICONXN(1,CONX(3))=CONX(2)
         ICONXN(5,CONX(3))=1
-
-            LOPT(2,CONX(3))=0
+        ICONXN(4,CONX(3))=1
+        LOPT(2,CONX(3))=0
             RETURN
       ELSE
         GOTO 10
@@ -964,7 +954,6 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
 !                ENDIF
             ENDIF
             TMPDEP=PI
-            PI=0
 !         ENDIF
       ENDIF
 

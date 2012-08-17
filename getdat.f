@@ -1,4 +1,5 @@
       SUBROUTINE GETDAT
+      INCLUDE 'SIZES'
       CHARACTER*80 LINE, GETNAM, FILENAME
 ************************************************************************
 *
@@ -40,9 +41,7 @@ C       LAURENT MODIFICATION
       FILENAME=GETNAM('FOR005')
       IF(INDEX(FILENAME,'.scan').EQ.STRLEN(FILENAME)-4)THEN
             CALL READSCANSTATE()
-            IF(NSCAN.GT.1)THEN
-                CALL STEPSCAN()
-            ENDIF
+            CALL STEPSCAN()
       ENDIF
 C       END LAURENT
 

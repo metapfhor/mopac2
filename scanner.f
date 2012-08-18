@@ -38,6 +38,7 @@
               VALS(IVALS(1))=VALS(IVALS(1))+STEPS(1)
           ENDIF
       ENDIF
+      APPLIED=.FALSE.
       CALL QKXYZINT(COORD,NATOMS,NA,NB,NC,GEO,XPARAM)
 
       RETURN
@@ -303,22 +304,22 @@ C             Laurent Modification: added
         APPLIED=.TRUE.
       ENDIF
 
-
-      DX=XYZ(1,1)
-      DY=XYZ(2,1)
-      DZ=XYZ(3,1)
-      OFF(1)=OFF(1)+ATOT(1,1)*DX+ATOT(1,2)*DY+ATOT(1,3)*DZ
-      OFF(2)=OFF(2)+ATOT(2,1)*DX+ATOT(2,2)*DY+ATOT(2,3)*DZ
-      OFF(3)=OFF(3)+ATOT(3,1)*DX+ATOT(3,2)*DY+ATOT(3,3)*DZ
-
-
-
-
-      DO I=1,NUMAT
-        XYZ(1,I)=XYZ(1,I)-DX
-        XYZ(2,I)=XYZ(2,I)-DY
-        XYZ(3,I)=XYZ(3,I)-DZ
-      END DO
+!
+!      DX=XYZ(1,1)
+!      DY=XYZ(2,1)
+!      DZ=XYZ(3,1)
+!      OFF(1)=OFF(1)+ATOT(1,1)*DX+ATOT(1,2)*DY+ATOT(1,3)*DZ
+!      OFF(2)=OFF(2)+ATOT(2,1)*DX+ATOT(2,2)*DY+ATOT(2,3)*DZ
+!      OFF(3)=OFF(3)+ATOT(3,1)*DX+ATOT(3,2)*DY+ATOT(3,3)*DZ
+!
+!
+!
+!
+!      DO I=1,NUMAT
+!        XYZ(1,I)=XYZ(1,I)-DX
+!        XYZ(2,I)=XYZ(2,I)-DY
+!        XYZ(3,I)=XYZ(3,I)-DZ
+!      END DO
 
 
 

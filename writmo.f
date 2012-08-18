@@ -187,7 +187,7 @@ C
          STOP
       ENDIF
 C       LAURENT MODIFICATION
-      IF(NSCAN.GT.1)CALL WRTENERGY(FUNCT)
+      IF(NSCAN.GE.1)CALL WRTENERGY(FUNCT)
 C       END LAURENT
       WRITE(6,'(////10X,''FINAL HEAT OF FORMATION ='',F17.5,'' KCAL''
      1)')FUNCT
@@ -343,7 +343,7 @@ C    PATAS
 
       CALL GMETRY(GEO,COORD)
 C       LAURENT MODIFICATION
-        CALL WRITESCANSTATE(COORD)
+!        CALL WRITESCANSTATE(COORD)
 C       END LAURENT
 
       IF(PRTGRA)THEN
@@ -414,25 +414,30 @@ C#     +STATUS='OLD')
 C#      WRITE(6,'(A)') 'Error opening SYBYL MOPAC output'
 C#  32  CONTINUE
       ENDIF
-      IF(NORBS.GT.0.AND..NOT.REDSCN)THEN
-      CALL SYMTRZ(COORD,C,NORBS,NORBS,.FALSE.,.TRUE.)
-      WRITE(6,'(//''      MOLECULAR POINT GROUP   :   '',A4)')NAME
-         IF (INDEX(KEYWRD,'VECT') .NE. 0) THEN
-            WRITE(6,'(//10X,A5,'' EIGENVECTORS  '')')CALCN(IUHF)
-            CALL MATOU1 (C,EIGS,NORBS,NORBS,MAXORB,2)
-            IF(UHF) THEN
-               WRITE(6,'(//10X,'' BETA EIGENVECTORS  '')')
-               CALL MATOU1 (CBETA,EIGB,NORBS,NORBS,MAXORB,2)
-            ENDIF
-         ELSE
-            WRITE(6,'(//10X,A5,''   EIGENVALUES'',/)')CALCN(IUHF)
-            WRITE(6,'(8F10.5)')(EIGS(I),I=1,NORBS)
-            IF(UHF) THEN
-               WRITE(6,'(//10X,'' BETA EIGENVALUES '')')
-               WRITE(6,'(8F10.5)')(EIGB(I),I=1,NORBS)
-            ENDIF
-         ENDIF
-      ENDIF
+C       LAURENT MODIFICATION
+C       REMOVED:IF(NORBS.GT.0)THEN
+!      IF(NORBS.GT.0.AND..NOT.REDSCN)THEN
+C       END LAURENT
+C       LAURENT MODIFICATION: FOR SCANNING PURPOSES
+!      CALL SYMTRZ(COORD,C,NORBS,NORBS,.FALSE.,.TRUE.)
+!      WRITE(6,'(//''      MOLECULAR POINT GROUP   :   '',A4)')NAME
+!         IF (INDEX(KEYWRD,'VECT') .NE. 0) THEN
+!            WRITE(6,'(//10X,A5,'' EIGENVECTORS  '')')CALCN(IUHF)
+!            CALL MATOU1 (C,EIGS,NORBS,NORBS,MAXORB,2)
+!            IF(UHF) THEN
+!               WRITE(6,'(//10X,'' BETA EIGENVECTORS  '')')
+!               CALL MATOU1 (CBETA,EIGB,NORBS,NORBS,MAXORB,2)
+!            ENDIF
+!         ELSE
+!            WRITE(6,'(//10X,A5,''   EIGENVALUES'',/)')CALCN(IUHF)
+!            WRITE(6,'(8F10.5)')(EIGS(I),I=1,NORBS)
+!            IF(UHF) THEN
+!               WRITE(6,'(//10X,'' BETA EIGENVALUES '')')
+!               WRITE(6,'(8F10.5)')(EIGB(I),I=1,NORBS)
+!            ENDIF
+!         ENDIF
+!      ENDIF
+C       END LAURENT
       WRITE(6,'(//13X,'' NET ATOMIC CHARGES AND DIPOLE '',
      1''CONTRIBUTIONS'',/)')
       WRITE(6,'(8X,'' ATOM NO.   TYPE          CHARGE        ATOM''

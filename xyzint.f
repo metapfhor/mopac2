@@ -39,15 +39,15 @@ C             Laurent Modification: added
       COMMON /LIN / PI,PJ,PK
       COMMON /PERMUTE /PR,PRT
       INTEGER PR(NUMATM),PRT(NUMATM),PI,PJ,PK
-      LOGICAL PRMTD
+      LOGICAL PRMTD,FIRST
       DOUBLE PRECISION ATOT(3,3)
       DOUBlE PRECISION DX, DY, DZ
      1  XYZINIT(3,NUMATM)
 
       COMMON /KEYWRD/ KEYWRD
       CHARACTER KEYWRD*241
-      SAVE PRMTD
-      DATA PRMTD /.FALSE./
+      SAVE PRMTD,FIRST
+      DATA PRMTD,FIRST /.FALSE.,.TRUE./
 C       Laurent End
       DATA ICALCN/0/
       IGEOOK=99
@@ -65,7 +65,7 @@ C       Laurent Modification: Recenter on the first atom
         APPLIED=.TRUE.
       ENDIF
 
-
+      IF(FIRST)THEN
       DX=XYZ(1,1)
       DY=XYZ(2,1)
       DZ=XYZ(3,1)
@@ -84,6 +84,8 @@ C       Laurent Modification: Recenter on the first atom
         XYZ(2,I)=XYZ(2,I)-DY
         XYZ(3,I)=XYZ(3,I)-DZ
    40 CONTINUE
+      FIRST=.FALSE.
+      ENDIF
 C       Laurent End
       IF(.NOT.(ICALCN.NE.NUMCAL).AND.NA(2).EQ.-1 .OR. NA(2).EQ.-2)THEN
          NA(2)=1

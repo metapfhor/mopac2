@@ -37,12 +37,4 @@ C
          STOP
       ENDIF
       CLOSE (2)
-C       LAURENT MODIFICATION
-      FILENAME=GETNAM('FOR005')
-      IF(INDEX(FILENAME,'.scan').EQ.STRLEN(FILENAME)-4)THEN
-            CALL READSCANSTATE()
-            CALL STEPSCAN()
-      ENDIF
-C       END LAURENT
-
       END

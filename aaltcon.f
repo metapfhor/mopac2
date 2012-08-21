@@ -61,10 +61,10 @@
           IF(ANGL.NE.180/DEGREE)THEN
               IF(ANGL.LT.170/DEGREE)THEN
                   TATM(1)=PK
-             CALL SETBANG(XYZ,PRT(PI),PRT(PJ),PRT(PK),180/DEGREE,TATM,1)
+           CALL SETBANG(XYZ,PRT(PI),PRT(PJ),PRT(PK),180/DEGREE,TATM,1)
               ELSE
                   TATM(1)=PJ
-                  CALL SETBANG(XYZ,PRT(PI),PRT(PK),PRT(PJ),0,TATM,1)
+           CALL SETBANG(XYZ,PRT(PI),PRT(PJ),PRT(PK),180/DEGREE,TATM,1)
               ENDIF
           ENDIF
       ENDIF
@@ -153,7 +153,8 @@
             JII(2)=XYZ(2,JJ)-XYZ(2,J)
             JII(3)=XYZ(3,JJ)-XYZ(3,J)
             LN=SQRT(JII(1)**2+JII(2)**2+JII(3)**2)
-            LN=ATAN2(DOT_PRODUCT(JII,YP)/LN,DOT_PRODUCT(JII,XP)/LN)
+            IF(LN.GT.0)
+     1       LN=ATAN2(DOT_PRODUCT(JII,YP)/LN,DOT_PRODUCT(JII,XP)/LN)
             LN=LN+DEL
             C=COS(LN)
             S=SIN(LN)

@@ -97,12 +97,18 @@ C
          DO 50 I=1,3
    50    CENTER(I)=CENTER(I)/WTMOL
 C       LAURENT MODIFICATION
-         OFF(1)=OFF(1)+ATOT(1,1)*CENTER(1)+ATOT(1,2)*CENTER(2)
-     1    +ATOT(1,3)*CENTER(3)
-         OFF(2)=OFF(2)+ATOT(2,1)*CENTER(1)+ATOT(2,2)*CENTER(2)
-     1    +ATOT(2,3)*CENTER(3)
-         OFF(3)=OFF(3)+ATOT(3,1)*CENTER(1)+ATOT(3,2)*CENTER(2)
-     1    +ATOT(3,3)*CENTER(3)
+!         OFF(1)=OFF(1)+ATOT(1,1)*CENTER(1)+ATOT(1,2)*CENTER(2)
+!     1    +ATOT(1,3)*CENTER(3)
+!         OFF(2)=OFF(2)+ATOT(2,1)*CENTER(1)+ATOT(2,2)*CENTER(2)
+!     1    +ATOT(2,3)*CENTER(3)
+!         OFF(3)=OFF(3)+ATOT(3,1)*CENTER(1)+ATOT(3,2)*CENTER(2)
+!     1    +ATOT(3,3)*CENTER(3)
+!         OFF(1)=OFF(1)+ATOT(1,1)*CENTER(1)+ATOT(2,1)*CENTER(2)
+!     1    +ATOT(3,1)*CENTER(3)
+!         OFF(2)=OFF(2)+ATOT(1,2)*CENTER(1)+ATOT(2,2)*CENTER(2)
+!     1    +ATOT(3,2)*CENTER(3)
+!         OFF(3)=OFF(3)+ATOT(1,3)*CENTER(1)+ATOT(2,3)*CENTER(2)
+!     1    +ATOT(3,3)*CENTER(3)
 C       END LAURENT
          DO 60 I=1,3
             DO 60 J=1,NUMAT

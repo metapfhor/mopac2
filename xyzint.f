@@ -40,9 +40,7 @@ C             Laurent Modification: added
       COMMON /PERMUTE /PR,PRT
       INTEGER PR(NUMATM),PRT(NUMATM),PI,PJ,PK
       LOGICAL PRMTD,FIRST
-      DOUBLE PRECISION ATOT(3,3)
-      DOUBlE PRECISION DX, DY, DZ
-     1  XYZINIT(3,NUMATM)
+      DOUBLE PRECISION ATOT(3,3),XYZINIT(3,NUMATM)
 
       COMMON /KEYWRD/ KEYWRD
       CHARACTER KEYWRD*241
@@ -65,27 +63,9 @@ C       Laurent Modification: Recenter on the first atom
         APPLIED=.TRUE.
       ENDIF
 
-      IF(FIRST)THEN
-      DX=XYZ(1,1)
-      DY=XYZ(2,1)
-      DZ=XYZ(3,1)
-      OFF(1)=OFF(1)+ATOT(1,1)*DX+ATOT(1,2)*DY+ATOT(1,3)*DZ
-      OFF(2)=OFF(2)+ATOT(2,1)*DX+ATOT(2,2)*DY+ATOT(2,3)*DZ
-      OFF(3)=OFF(3)+ATOT(3,1)*DX+ATOT(3,2)*DY+ATOT(3,3)*DZ
-!      OFF(1)=OFF(1)+ATOT(1,1)*DX+ATOT(2,1)*DY+ATOT(3,1)*DZ
-!      OFF(2)=OFF(2)+ATOT(1,2)*DX+ATOT(2,2)*DY+ATOT(3,2)*DZ
-!      OFF(3)=OFF(3)+ATOT(1,3)*DX+ATOT(2,3)*DY+ATOT(3,3)*DZ
 
 
 
-
-      DO 40 I=1,NUMAT
-        XYZ(1,I)=XYZ(1,I)-DX
-        XYZ(2,I)=XYZ(2,I)-DY
-        XYZ(3,I)=XYZ(3,I)-DZ
-   40 CONTINUE
-      FIRST=.FALSE.
-      ENDIF
 C       Laurent End
       IF(.NOT.(ICALCN.NE.NUMCAL).AND.NA(2).EQ.-1 .OR. NA(2).EQ.-2)THEN
          NA(2)=1
@@ -210,7 +190,7 @@ C       Laurent
       COMMON /GENRAL/ COORD(3,NUMATM), COLD(3,NUMATM*3), GOLD(MAXPAR),
      1 XPARAM(MAXPAR)
       DOUBLE PRECISION XHP(3),YHP(3),ZHP(3),XHT(3),YHT(3),ZHT(3),LNP
-     1 ,ATMP(3,3),XY,XZ,YZ,ZZ,ATOT(3,3)
+     1 ,ATMP(3,3),XY,XZ,YZ,ZZ,ATOT(3,3),DX,DY,DZ
       COMMON /KEYWRD/ KEYWRD
       CHARACTER KEYWRD*241
 C       /Laurent
@@ -277,6 +257,17 @@ C       Translation (should be done at the end in input coords)
 
 C       New Axes
 
+!      OFF(2)=OFF(2)
+!      OFF(3)=OFF(3)
+      DX=XYZ(1,1)
+      DY=XYZ(2,1)
+      DZ=XYZ(3,1)
+      DO 40 I=1,NUMAT
+        XYZ(1,I)=XYZ(1,I)-DX
+        XYZ(2,I)=XYZ(2,I)-DY
+        XYZ(3,I)=XYZ(3,I)-DZ
+   40 CONTINUE
+
       XHP=XYZ(:,2)
       LNP = SQRT((XHP(1))**2+(XHP(2))**2+(XHP(3))**2)
       XHP(1)=XHP(1)/LNP
@@ -311,6 +302,14 @@ C       Update our axes
       ATMP(:,3)=ZHP
 
       ATOT = MATMUL(ATMP,ATOT)
+
+!      OFF(1)=(ATOT(1,1)*DX+ATOT(1,2)*DY+ATOT(1,3)*DZ)
+!      OFF(2)=(ATOT(2,1)*DX+ATOT(2,2)*DY+ATOT(2,3)*DZ)
+!      OFF(3)=(ATOT(3,1)*DX+ATOT(3,2)*DY+ATOT(3,3)*DZ)
+      OFF(1)=OFF(1)+ATOT(1,1)*DX+ATOT(2,1)*DY+ATOT(3,1)*DZ
+      OFF(2)=OFF(2)+ATOT(1,2)*DX+ATOT(2,2)*DY+ATOT(3,2)*DZ
+      OFF(3)=OFF(3)+ATOT(1,3)*DX+ATOT(2,3)*DY+ATOT(3,3)*DZ
+
 
       IF(.NOT.APPLIED)THEN
         DO I=1,NUMATM

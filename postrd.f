@@ -83,7 +83,7 @@ C     PATAS
 C       LAURENT MODIFICATION
       IF(.NOT.APPLIED)THEN
       CALL GMETRY(GEO,COORD)
-      CALL XYZINT(COORD,NATOMS,NA,NB,NC,DEGREE,GEO)
+      CALL XYZINT(COORD,NATOMS,NA,NB,NC,1.D0,GEO)
       ENDIF
 
 C       END LUARENT
@@ -498,9 +498,9 @@ C       Laurent End
          SUMY=SUMY/NUMAT
          SUMZ=SUMZ/NUMAT
 C       Laurent Modification: this recentering needs to be taken into account
-        OFF(1)=OFF(1)+ATOT(1,1)*SUMX+ATOT(1,2)*SUMY+ATOT(1,3)*SUMZ
-        OFF(2)=OFF(2)+ATOT(2,1)*SUMX+ATOT(2,2)*SUMY+ATOT(2,3)*SUMZ
-        OFF(3)=OFF(3)+ATOT(3,1)*SUMX+ATOT(3,2)*SUMY+ATOT(3,3)*SUMZ
+!        OFF(1)=OFF(1)+ATOT(1,1)*SUMX+ATOT(1,2)*SUMY+ATOT(1,3)*SUMZ
+!        OFF(2)=OFF(2)+ATOT(2,1)*SUMX+ATOT(2,2)*SUMY+ATOT(2,3)*SUMZ
+!        OFF(3)=OFF(3)+ATOT(3,1)*SUMX+ATOT(3,2)*SUMY+ATOT(3,3)*SUMZ
 C       Laurent end
          DO 260 J=1,NUMAT
             GEO(1,J)=COORD(1,J)-SUMX

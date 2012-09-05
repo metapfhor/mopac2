@@ -863,10 +863,7 @@ C     FIRST INFO ON THIS LINE IS A TRANSLATION
       BACKSPACE(IREAD)
       END DO
 
-      DO I=1,NUMATM
-          PR(I)=I
-          PRT(I)=I
-      END DO
+
 
       DO I=1,NUMATM
          MINDEP=0

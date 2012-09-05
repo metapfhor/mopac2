@@ -65,6 +65,8 @@ C       as well as a translation vector in order to return to the input coords
       DOUBLE PRECISION VALS(3*NUMATM)
       LOGICAL REDSCN
       INTEGER DESC
+      COMMON /PERMUTE / PR,PRT
+      INTEGER PR(NUMATM),PRT(NUMATM)
       DATA DESC,ISCAN,NSCAN,NDIM,REDSCN /2,1,1,0,.FALSE./
 
       DATA NTRANS,NANGL,NDIHD,NATOM,NVALS,APPLIED /0,0,0,0,0,.FALSE./
@@ -84,7 +86,7 @@ C     PATAS
       ITERQ=0
 C     PATAS
 
-C       Laurent: Axis Initilization
+C       Laurent: Axis and Permutation Initilization
 
       XHAT(1)=1
       YHAT(1)=0
@@ -102,6 +104,11 @@ C       Laurent: Axis Initilization
       ATOT(:,1)=XHAT
       ATOT(:,2)=YHAT
       ATOT(:,3)=ZHAT
+
+      DO I=1,NUMATM
+          PR(I)=I
+          PRT(I)=I
+      END DO
 C       End Laurent
 
       CALL GETDAT
@@ -134,6 +141,7 @@ C       LAURENT MODIFICATION
 
    20 CALL INITRD
    21 CALL POSTRD
+
 C       END LAURENT
       EMIN=0.D0
 C#      CALL TIMER('AFTER READ')
@@ -160,6 +168,7 @@ C
          ENDIF
          GOTO 50
       ENDIF
+
       CALL MOLDAT(0)
 C COSMO change
 C  INITIALIZE SOLVATION
